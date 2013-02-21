@@ -84,11 +84,6 @@
 										<jvmarg value="-Xmx128m" />
 									</platform>
 								</jfxdeploy>
-								<jfxsignjar destdir="${project.build.directory}/deploy"
-									keyStore="keys/elvn.ks" storePass="becevka" alias="elvn"
-									keyPass="becevka">
-									<fileset dir="${project.build.directory}/deploy" includes="*.jar" />
-								</jfxsignjar>
 							</target>
 						</configuration>
 						<goals>
