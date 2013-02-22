@@ -55,7 +55,7 @@ public class LocateTask extends TaskResult {
                 } else if (list != null) {
                     config.removeNote(note);
                     config.saveTask(new Task(note.getId(), list, note.getText(), false, null));
-                    return forward(new SwitchListColor(ListColor.White.toString()), display, config);
+                    return forward(new SwitchListColor(ListColor.All.toString()), display, config);
                 } else if (text != null) {
                     config.saveNote(new Note(note.getId(), processText(note.getText(), text)));
                 }

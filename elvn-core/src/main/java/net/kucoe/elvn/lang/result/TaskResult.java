@@ -1,6 +1,7 @@
 package net.kucoe.elvn.lang.result;
 
-import static net.kucoe.elvn.ListColor.*;
+import static net.kucoe.elvn.ListColor.Blue;
+import static net.kucoe.elvn.ListColor.Today;
 
 import java.util.Date;
 
@@ -48,8 +49,12 @@ public class TaskResult extends BaseResult {
     public String execute(final Display display, final Config config) throws Exception {
         String currentList = display.getCurrentList();
         if (ELCommand.Notes.el().equals(currentList)) {
-            String t = list == null ? text : list + ":" + text;
-            config.saveNote(new Note(new Date().getTime(), t));
+            String t = text;
+            if (t == null) {
+                t = "";
+            }
+            t = list == null ? t : list + ":" + t;
+            config.saveNote(new Note(new Date().getTime(), t.trim()));
             return forward(new SwitchNotes(), display, config);
         }
         if (ELCommand.ListEdit.el().equals(currentList)) {
@@ -66,20 +71,23 @@ public class TaskResult extends BaseResult {
             id = new Date().getTime();
         }
         String l = list;
+        String t = text;
         if (l == null || ListColor.color(l) == null || isRestrictedList(l)) {
+            if (l != null && ListColor.color(l) == null) {
+                t = t == null ? l + ":" : l + ":" + t;
+            }
             if (!isRestrictedList(currentList)) {
                 l = currentList;
             } else {
                 l = task.getList();
             }
         }
-        String t = text;
         if (t != null) {
             t = processText(task.getText(), t);
         } else {
             t = task.getText();
         }
-        boolean planned = task.isPlanned() || Teal.equals(ListColor.color(currentList));
+        boolean planned = task.isPlanned() || Today.equals(ListColor.color(currentList));
         Date completedOn = task.getCompletedOn();
         
         Task update = new Task(id, l, t, planned, completedOn);
@@ -100,11 +108,11 @@ public class TaskResult extends BaseResult {
         } else if (t.startsWith("-")) {
             t = oldText.replace(t.substring(1), "");
         }
-        return t;
+        return t.trim();
     }
     
     private boolean isRestrictedList(final String list) {
         ListColor color = ListColor.color(list);
-        return White.equals(color) || Teal.equals(color) || Stroke.equals(color);
+        return ListColor.isSystemColor(color);
     }
 }

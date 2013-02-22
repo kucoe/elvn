@@ -35,7 +35,7 @@ public class ConsoleDisplay implements Display {
     public void showLists(final Config config) throws IOException, JsonException {
         showHeader("Lists");
         for (ListColor color : ListColor.values()) {
-            if (ListColor.White.equals(color) || ListColor.Teal.equals(color) || ListColor.Stroke.equals(color)) {
+            if (ListColor.isSystemColor(color)) {
                 continue;
             }
             List list = config.getList(color);
@@ -52,7 +52,7 @@ public class ConsoleDisplay implements Display {
         int i = 1;
         Collections.sort(tasks);
         for (Task task : tasks) {
-            String format = formatTask(ListColor.White.toString(), task, i);
+            String format = formatTask(ListColor.All.toString(), task, i);
             System.out.println(format);
             i++;
         }
@@ -90,7 +90,7 @@ public class ConsoleDisplay implements Display {
     @Override
     public void showTask(final Task task, final int position) {
         showBodyText(ELCommand.Locate.el() + position + ELCommand.Assign.el()
-                + formatTask(ListColor.White.toString(), task, 0));
+                + formatTask(ListColor.All.toString(), task, 0));
     }
     
     @Override
@@ -110,12 +110,12 @@ public class ConsoleDisplay implements Display {
             sb.append(pos);
             sb.append(".");
         }
-        if (task.getCompletedOn() == null && ListColor.White.toString().equals(currentList)) {
+        if (task.getCompletedOn() == null && ListColor.All.toString().equals(currentList)) {
             sb.append(task.getList());
             sb.append(":");
         }
         sb.append(task.getText());
-        if (task.getCompletedOn() == null && task.isPlanned() && !ListColor.Teal.toString().equals(currentList)) {
+        if (task.getCompletedOn() == null && task.isPlanned() && !ListColor.Today.toString().equals(currentList)) {
             sb.append("-planned");
         }
         return sb.toString();

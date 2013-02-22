@@ -116,7 +116,7 @@ public class Config {
     private void remove(final Task task) throws IOException, JsonException {
         List list = getList(ListColor.color(task.getList()));
         list.getTasks().remove(task);
-        list = getList(Stroke);
+        list = getList(Done);
         list.getTasks().remove(task);
     }
     
@@ -190,8 +190,7 @@ public class Config {
         List list = getList(listColor);
         if (list != null) {
             if ((label == null || label.isEmpty() || List.NOT_ASSIGNED.equals(label))
-                    && !(ListColor.Blue.equals(listColor) || ListColor.White.equals(listColor)
-                            || ListColor.Teal.equals(listColor) || ListColor.Stroke.equals(listColor))) {
+                    && !(ListColor.Blue.equals(listColor) || ListColor.isSystemColor(listColor))) {
                 lists.remove(listColor);
             } else {
                 List newList = new List(label, listColor.toString());
@@ -223,12 +222,12 @@ public class Config {
                 return note;
             }
         }
-        for (Task task : getList(ListColor.White).getTasks()) {
+        for (Task task : getList(ListColor.All).getTasks()) {
             if (task.getId().equals(id)) {
                 return task;
             }
         }
-        for (Task task : getList(ListColor.Stroke).getTasks()) {
+        for (Task task : getList(ListColor.Done).getTasks()) {
             if (task.getId().equals(id)) {
                 return task;
             }
@@ -270,10 +269,10 @@ public class Config {
         if (query == null) {
             return result;
         }
-        for (Task task : getList(ListColor.White).getTasks()) {
+        for (Task task : getList(ListColor.All).getTasks()) {
             filter(query, task, result);
         }
-        for (Task task : getList(ListColor.Stroke).getTasks()) {
+        for (Task task : getList(ListColor.Done).getTasks()) {
             filter(query, task, result);
         }
         return result;
@@ -377,9 +376,9 @@ public class Config {
     public String getStatus() throws IOException, JsonException {
         maybeInit();
         String today = new SimpleDateFormat("E, dd MMMM yyyy", Locale.US).format(new Date());
-        int planned = getList(Teal).getTasks().size();
+        int planned = getList(Today).getTasks().size();
         int done = 0;
-        java.util.List<Task> tasks = getList(Stroke).getTasks();
+        java.util.List<Task> tasks = getList(Done).getTasks();
         for (Task task : tasks) {
             if (isToday(task.getCompletedOn())) {
                 done++;
@@ -399,8 +398,8 @@ public class Config {
     private synchronized void maybeInit() throws IOException, JsonException {
         if (lists.isEmpty() || fileUpdated()) {
             lists = new HashMap<ListColor, List>();
-            List list = new List("All", White.toString());
-            lists.put(White, list);
+            List list = new List("All", All.toString());
+            lists.put(All, list);
             java.util.List<Map<String, Object>> listsPart = getConfigPart("lists");
             for (Map<String, Object> listPart : listsPart) {
                 String label = (String) listPart.get("label");
@@ -411,10 +410,10 @@ public class Config {
                     lists.put(listColor, list);
                 }
             }
-            list = new List("Today", Teal.toString());
-            lists.put(Teal, list);
-            list = new List("Completed", Stroke.toString());
-            lists.put(Stroke, list);
+            list = new List("Today", Today.toString());
+            lists.put(Today, list);
+            list = new List("Completed", Done.toString());
+            lists.put(Done, list);
             java.util.List<Map<String, Object>> tasksPart = getConfigPart("tasks");
             for (Map<String, Object> taskPart : tasksPart) {
                 String listName = (String) taskPart.get("list");
@@ -430,12 +429,12 @@ public class Config {
                     if (list4Task != null) {
                         list4Task.getTasks().add(task);
                     }
-                    lists.get(White).getTasks().add(task);
+                    lists.get(All).getTasks().add(task);
                     if (p) {
-                        lists.get(Teal).getTasks().add(task);
+                        lists.get(Today).getTasks().add(task);
                     }
                 } else {
-                    lists.get(Stroke).getTasks().add(task);
+                    lists.get(Done).getTasks().add(task);
                 }
             }
             notes = new ArrayList<Note>();
@@ -479,10 +478,10 @@ public class Config {
         java.util.List<Map<String, Object>> tasksPart = new LinkedList<Map<String, Object>>();
         for (List list : lists.values()) {
             String color = list.getColor();
-            if (White.toString().equals(color) || Teal.toString().equals(color)) {
+            if (All.toString().equals(color) || Today.toString().equals(color)) {
                 continue;
             }
-            if (!Stroke.toString().equals(color)) {
+            if (!Done.toString().equals(color)) {
                 Map<String, Object> map = new LinkedHashMap<String, Object>();
                 map.put("label", list.getLabel());
                 map.put("color", list.getColor());

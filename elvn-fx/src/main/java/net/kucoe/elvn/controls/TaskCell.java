@@ -68,8 +68,7 @@ public class TaskCell extends ListCell<Task> {
             colorPicker = new ColorBox(null);
             ListColor[] values = ListColor.values();
             for (ListColor color : values) {
-                if (!ListColor.White.equals(color) && !ListColor.Stroke.equals(color) && !ListColor.Teal.equals(color)
-                        && tool.getList(color) != null) {
+                if (!ListColor.isSystemColor(color) && tool.getList(color) != null) {
                     colorPicker.getItems().add(color);
                 }
             }

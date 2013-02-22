@@ -128,7 +128,7 @@ public class TaskCommand extends LocateTask {
                 } else {
                     config.removeNote(note);
                     config.saveTask(new Task(note.getId(), command, note.getText(), false, null));
-                    return forward(new SwitchListColor(ListColor.White.toString()), display, config);
+                    return forward(new SwitchListColor(ListColor.All.toString()), display, config);
                 }
             }
             return forward(new SwitchNotes(), display, config);

@@ -24,7 +24,7 @@ public class ResultTest {
     
     class DisplayMock implements Display {
         
-        private String currentList = ListColor.White.toString();
+        private String currentList = ListColor.All.toString();
         
         protected String helpMessage;
         
@@ -151,10 +151,10 @@ public class ResultTest {
     
     @Test
     public void testTaskCreate() throws Exception {
-        int size = config.getList(ListColor.White).getTasks().size();
+        int size = config.getList(ListColor.All).getTasks().size();
         TaskResult command = new TaskResult("b", "a");
-        assertEquals(ListColor.White.toString(), command.execute(display, config));
-        assertEquals(size + 1, config.getList(ListColor.White).getTasks().size());
+        assertEquals(ListColor.All.toString(), command.execute(display, config));
+        assertEquals(size + 1, config.getList(ListColor.All).getTasks().size());
     }
     
     @Test
@@ -168,7 +168,7 @@ public class ResultTest {
     public void testNote2TaskCommand() throws Exception {
         TaskCommand command = new TaskCommand(1, "g");
         display.setCurrentList(ELCommand.Notes.el());
-        assertEquals(ListColor.White.toString(), command.execute(display, config));
+        assertEquals(ListColor.All.toString(), command.execute(display, config));
         assertEquals(0, config.getNotes().size());
         assertEquals(2, config.getList(ListColor.Green).getTasks().size());
     }
@@ -177,7 +177,7 @@ public class ResultTest {
     public void testNote2Task() throws Exception {
         LocateTask command = new LocateTask("g", null, 1);
         display.setCurrentList(ELCommand.Notes.el());
-        assertEquals(ListColor.White.toString(), command.execute(display, config));
+        assertEquals(ListColor.All.toString(), command.execute(display, config));
         assertEquals(0, config.getNotes().size());
         assertEquals(2, config.getList(ListColor.Green).getTasks().size());
     }
@@ -185,16 +185,16 @@ public class ResultTest {
     @Test
     public void testGroupRunTask() throws Exception {
         GroupTaskCommand command = new GroupTaskCommand(">", 1, 2);
-        assertEquals(ListColor.White.toString(), command.execute(display, config));
-        assertEquals(2, config.getList(ListColor.Teal).getTasks().size());
+        assertEquals(ListColor.All.toString(), command.execute(display, config));
+        assertEquals(2, config.getList(ListColor.Today).getTasks().size());
         assertTrue(Timer.isRunning());
     }
     
     @Test
     public void testGroupDeleteTask() throws Exception {
         GroupTaskCommand command = new GroupTaskCommand("x", 1, 2);
-        assertEquals(ListColor.White.toString(), command.execute(display, config));
-        assertEquals(0, config.getList(ListColor.White).getTasks().size());
+        assertEquals(ListColor.All.toString(), command.execute(display, config));
+        assertEquals(0, config.getList(ListColor.All).getTasks().size());
     }
     
     @Test
@@ -202,11 +202,11 @@ public class ResultTest {
         for (int i = 0; i < 13; i++) {
             create();
         }
-        assertEquals(15, config.getList(ListColor.White).getTasks().size());
+        assertEquals(15, config.getList(ListColor.All).getTasks().size());
         ELResult command = EL.process("#3-15v");
-        assertEquals(ListColor.White.toString(), command.execute(display, config));
-        assertEquals(2, config.getList(ListColor.White).getTasks().size());
-        assertEquals(14, config.getList(ListColor.Stroke).getTasks().size());
+        assertEquals(ListColor.All.toString(), command.execute(display, config));
+        assertEquals(2, config.getList(ListColor.All).getTasks().size());
+        assertEquals(14, config.getList(ListColor.Done).getTasks().size());
     }
     
     @Test
@@ -214,10 +214,10 @@ public class ResultTest {
         for (int i = 0; i < 13; i++) {
             create();
         }
-        assertEquals(15, config.getList(ListColor.White).getTasks().size());
+        assertEquals(15, config.getList(ListColor.All).getTasks().size());
         ELResult command = EL.process("#3-15x");
-        assertEquals(ListColor.White.toString(), command.execute(display, config));
-        assertEquals(2, config.getList(ListColor.White).getTasks().size());
+        assertEquals(ListColor.All.toString(), command.execute(display, config));
+        assertEquals(2, config.getList(ListColor.All).getTasks().size());
     }
     
     @Test
@@ -225,20 +225,20 @@ public class ResultTest {
         for (int i = 0; i < 13; i++) {
             create();
         }
-        assertEquals(15, config.getList(ListColor.White).getTasks().size());
+        assertEquals(15, config.getList(ListColor.All).getTasks().size());
         ELResult command = EL.process("#*x");
-        assertEquals(ListColor.White.toString(), command.execute(display, config));
-        assertEquals(0, config.getList(ListColor.White).getTasks().size());
+        assertEquals(ListColor.All.toString(), command.execute(display, config));
+        assertEquals(0, config.getList(ListColor.All).getTasks().size());
     }
     
     @Test
     public void testBigCompletedGroupDeleteTask() throws Exception {
         testBigGroupCompleteTask();
-        display.setCurrentList(ListColor.Stroke.toString());
-        assertEquals(14, config.getList(ListColor.Stroke).getTasks().size());
+        display.setCurrentList(ListColor.Done.toString());
+        assertEquals(14, config.getList(ListColor.Done).getTasks().size());
         ELResult command = EL.process("#2-14x");
-        assertEquals(ListColor.Stroke.toString(), command.execute(display, config));
-        assertEquals(1, config.getList(ListColor.Stroke).getTasks().size());
+        assertEquals(ListColor.Done.toString(), command.execute(display, config));
+        assertEquals(1, config.getList(ListColor.Done).getTasks().size());
     }
     
     @Test
@@ -246,11 +246,11 @@ public class ResultTest {
         for (int i = 0; i < 13; i++) {
             create();
         }
-        java.util.List<Task> tasks = config.getList(ListColor.White).getTasks();
+        java.util.List<Task> tasks = config.getList(ListColor.All).getTasks();
         assertEquals(15, tasks.size());
         ELResult command = EL.process("?a");
-        assertEquals(ListColor.White.toString(), command.execute(display, config));
-        tasks = config.getList(ListColor.White).getTasks();
+        assertEquals(ListColor.All.toString(), command.execute(display, config));
+        tasks = config.getList(ListColor.All).getTasks();
         assertEquals(15, tasks.size());
         for (Task t : tasks) {
             assertTrue(t.getText().contains("a"));
@@ -262,11 +262,11 @@ public class ResultTest {
         for (int i = 0; i < 13; i++) {
             create();
         }
-        java.util.List<Task> tasks = config.getList(ListColor.White).getTasks();
+        java.util.List<Task> tasks = config.getList(ListColor.All).getTasks();
         assertEquals(15, tasks.size());
         ELResult command = EL.process("?a=a%b");
-        assertEquals(ListColor.White.toString(), command.execute(display, config));
-        tasks = config.getList(ListColor.White).getTasks();
+        assertEquals(ListColor.All.toString(), command.execute(display, config));
+        tasks = config.getList(ListColor.All).getTasks();
         assertEquals(15, tasks.size());
         for (Task t : tasks) {
             assertTrue(t.getText().contains("b"));
@@ -278,11 +278,11 @@ public class ResultTest {
         for (int i = 0; i < 13; i++) {
             create();
         }
-        java.util.List<Task> tasks = config.getList(ListColor.White).getTasks();
+        java.util.List<Task> tasks = config.getList(ListColor.All).getTasks();
         assertEquals(15, tasks.size());
         ELResult command = EL.process("?a=a%");
-        assertEquals(ListColor.White.toString(), command.execute(display, config));
-        tasks = config.getList(ListColor.White).getTasks();
+        assertEquals(ListColor.All.toString(), command.execute(display, config));
+        tasks = config.getList(ListColor.All).getTasks();
         assertEquals(15, tasks.size());
         for (Task t : tasks) {
             assertFalse(t.getText().contains("a"));
@@ -295,6 +295,44 @@ public class ResultTest {
         display.setCurrentList(ELCommand.Notes.el());
         assertEquals(ELCommand.Notes.el(), command.execute(display, config));
         assertEquals(0, config.getNotes().size());
+    }
+    
+    @Test
+    public void testCreateTaskWrongList() throws Exception {
+        ELResult result = EL.process("greena:text");
+        display.setCurrentList(ListColor.Green.toString());
+        assertEquals(ListColor.Green.toString(), result.execute(display, config));
+        java.util.List<Task> tasks = config.getList(ListColor.Green).getTasks();
+        int size = tasks.size();
+        assertEquals(2, size);
+        assertEquals("greena:text", tasks.get(1).getText());
+    }
+    
+    @Test
+    public void testCreateTaskWrongList2() throws Exception {
+        ELResult result = EL.process("greena:");
+        display.setCurrentList(ListColor.Green.toString());
+        assertEquals(ListColor.Green.toString(), result.execute(display, config));
+        java.util.List<Task> tasks = config.getList(ListColor.Green).getTasks();
+        int size = tasks.size();
+        assertEquals(2, size);
+        assertEquals("greena:", tasks.get(1).getText());
+    }
+    
+    @Test
+    public void testTextTrim() throws Exception {
+        ELResult result = EL.process(" aaaa ");
+        display.setCurrentList(ELCommand.Notes.el());
+        assertEquals(ELCommand.Notes.el(), result.execute(display, config));
+        assertEquals("aaaa", config.getNotes().get(1).getText());
+    }
+    
+    @Test
+    public void testLocateTextTrim() throws Exception {
+        ELResult result = EL.process("#1= aaaa ");
+        display.setCurrentList(ELCommand.Notes.el());
+        assertEquals(ELCommand.Notes.el(), result.execute(display, config));
+        assertEquals("aaaa", config.getNotes().get(0).getText());
     }
     
     @Test
@@ -344,7 +382,7 @@ public class ResultTest {
         display.setCurrentList(ListColor.Blue.toString());
         assertEquals(ListColor.Blue.toString(), result.execute(display, config));
         String text = config.getList(ListColor.Blue).getTasks().get(0).getText();
-        assertEquals("Test ", text);
+        assertEquals("Test", text);
     }
     
     @Test
@@ -353,8 +391,7 @@ public class ResultTest {
         display.setCurrentList(ELCommand.Notes.el());
         assertEquals(ELCommand.Notes.el(), result.execute(display, config));
         String text = config.getNotes().get(0).getText();
-        assertFalse(text.contains("+"));
-        assertTrue(text.contains("popopo"));
+        assertEquals("Test notepopopo", text);
     }
     
     @Test
@@ -363,15 +400,14 @@ public class ResultTest {
         display.setCurrentList(ELCommand.Notes.el());
         assertEquals(ELCommand.Notes.el(), result.execute(display, config));
         String text = config.getNotes().get(0).getText();
-        assertFalse(text.contains("-"));
-        assertFalse(text.contains("note"));
+        assertEquals("Test", text);
     }
     
     @Test
     public void testTimerRun() throws Exception {
         TaskCommand command = new TaskCommand(1, ">");
         command.execute(display, config);
-        assertEquals(1, config.getList(ListColor.Teal).getTasks().size());
+        assertEquals(1, config.getList(ListColor.Today).getTasks().size());
         assertTrue(Timer.isRunning());
         assertEquals(TaskStage.Elvn, timerView.stage);
     }
@@ -382,7 +418,7 @@ public class ResultTest {
         TimerCommand command = new TimerCommand("x");
         command.execute(display, config);
         assertFalse(Timer.isRunning());
-        assertEquals(1, config.getList(ListColor.Stroke).getTasks().size());
+        assertEquals(1, config.getList(ListColor.Done).getTasks().size());
     }
     
     @Test
@@ -391,7 +427,7 @@ public class ResultTest {
         TimerCommand command = new TimerCommand("v");
         command.execute(display, config);
         assertFalse(Timer.isRunning());
-        assertEquals(2, config.getList(ListColor.Stroke).getTasks().size());
+        assertEquals(2, config.getList(ListColor.Done).getTasks().size());
     }
     
     @Test

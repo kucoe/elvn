@@ -35,7 +35,7 @@ public class elvn {
         Timer.setTimerView(timerView);
         Timer.setProcess(new ThreadProcess());
         try {
-            ELResult result = new SwitchListColor(ListColor.Teal.toString());
+            ELResult result = new SwitchListColor(ListColor.Today.toString());
             String command = joinArgs(args);
             if (command != null) {
                 result = EL.process(command);
@@ -88,7 +88,7 @@ public class elvn {
     }
     
     private static Completor createCompletor() {
-        return new SimpleCompletor(new String[] { "/all", "/done", "/today", "/@", "/!>" });
+        return new SimpleCompletor(new String[] { "/all", "/done", "/today", "@", "!", "$", "#" });
     }
     
 }

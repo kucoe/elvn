@@ -121,7 +121,7 @@ public class TimerCommand extends SwitchTimer {
                 if (isRunning()) {
                     resume();
                 } else {
-                    List<Task> tasks = config.getList(ListColor.Teal).getTasks();
+                    List<Task> tasks = config.getList(ListColor.Today).getTasks();
                     if (!tasks.isEmpty()) {
                         final Iterator<Task> it = tasks.iterator();
                         Task task = it.next();

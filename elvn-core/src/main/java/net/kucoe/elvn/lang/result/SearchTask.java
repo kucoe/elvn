@@ -72,7 +72,7 @@ public class SearchTask extends TaskResult {
             result.add((Task) config.getById(t.getId()));
         }
         display.showTasks(result);
-        return ListColor.White.toString();
+        return ListColor.All.toString();
     }
     
 }

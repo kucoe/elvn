@@ -11,14 +11,14 @@ import java.util.Map;
 public enum ListColor {
     
     /**
-     * White color.
+     * All color.
      */
-    White("w", "#FFFFFF"),
+    All("a", "#FFFFFF"),
     
     /**
-     * Teal color.
+     * Today color.
      */
-    Teal("t", "#4EE2EC"),
+    Today("t", "#4EE2EC"),
     
     /**
      * Red color.
@@ -56,9 +56,9 @@ public enum ListColor {
     Violet("v", "#6A287E"),
     
     /**
-     * Stroke color.
+     * Done color.
      */
-    Stroke("s", "#5C5858");
+    Done("d", "#5C5858");
     
     private String el;
     private String hex;
@@ -76,10 +76,9 @@ public enum ListColor {
             colors.put(st, color);
             colors.put(color.toString(), color);
         }
-        colors.put("all", White);
-        colors.put("done", Stroke);
-        colors.put("today", Teal);
-        colors.put("plan", Teal);
+        colors.put("all", All);
+        colors.put("done", Done);
+        colors.put("today", Today);
     }
     
     /**
@@ -104,6 +103,16 @@ public enum ListColor {
     @Override
     public String toString() {
         return name().toLowerCase();
+    }
+    
+    /**
+     * Returns whether color is system
+     * 
+     * @param color
+     * @return boolean
+     */
+    public static boolean isSystemColor(ListColor color) {
+        return All.equals(color) || Today.equals(color) || Done.equals(color);
     }
     
 }

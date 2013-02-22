@@ -168,12 +168,12 @@ public class Elvn extends Application implements Display {
     
     @Override
     public void showTasks(final java.util.List<Task> tasks) {
-        current = ListColor.White.toString();
+        current = ListColor.All.toString();
         CommandTool tool = new CommandTool(this, config);
         ListView<Task> view = tool.createView(null, tasks);
         mainArea.getChildren().setAll(view);
         currentListView = view;
-        colorPicker.setValue(ListColor.White);
+        colorPicker.setValue(ListColor.All);
         colorPicker.setVisible(true);
         commandLine.setPromptText(taskHint);
         commandLine.requestFocus();
@@ -236,7 +236,7 @@ public class Elvn extends Application implements Display {
         stage.setScene(scene);
         stage.show();
         
-        showList(config.getList(ListColor.Teal));
+        showList(config.getList(ListColor.Today));
     }
     
     private Scene createScene(final StackPane layerPane) {

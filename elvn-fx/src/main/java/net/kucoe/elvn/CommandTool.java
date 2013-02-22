@@ -33,10 +33,10 @@ public class CommandTool {
     public CommandTool(final Display display, final Config config) {
         this.display = display;
         this.config = config;
-        colors.add(ListColor.Teal);
-        colors.add(ListColor.White);
+        colors.add(ListColor.Today);
+        colors.add(ListColor.All);
         for (ListColor color : ListColor.values()) {
-            if (ListColor.White.equals(color) || ListColor.Teal.equals(color) || ListColor.Stroke.equals(color)) {
+            if (ListColor.isSystemColor(color)) {
                 continue;
             }
             List list = getList(color);
@@ -44,7 +44,7 @@ public class CommandTool {
                 colors.add(color);
             }
         }
-        colors.add(ListColor.Stroke);
+        colors.add(ListColor.Done);
     }
     
     /**
@@ -98,8 +98,8 @@ public class CommandTool {
      * @return {@link ListView}
      */
     public ListView<Task> createView(final List list, final java.util.List<Task> tasks) {
-        final ListColor color = list == null ? ListColor.White : ListColor.color(list.getColor());
-        final boolean completeList = ListColor.Stroke.equals(color) ? true : false;
+        final ListColor color = list == null ? ListColor.All : ListColor.color(list.getColor());
+        final boolean completeList = ListColor.Done.equals(color) ? true : false;
         final ListView<Task> listView = new ListView<>();
         java.util.List<Task> t = tasks;
         if (list != null) {

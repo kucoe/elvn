@@ -19,7 +19,7 @@ public class ListEditorView extends ListView<List> {
      */
     public ListEditorView(final CommandTool tool) {
         for (ListColor color : ListColor.values()) {
-            if (ListColor.White.equals(color) || ListColor.Teal.equals(color) || ListColor.Stroke.equals(color)) {
+            if (ListColor.isSystemColor(color)) {
                 continue;
             }
             List list = tool.getList(color);
