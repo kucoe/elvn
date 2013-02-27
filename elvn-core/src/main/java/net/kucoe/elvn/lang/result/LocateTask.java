@@ -52,12 +52,17 @@ public class LocateTask extends TaskResult {
                 if (text == null && list == null) {
                     reshow = false;
                     display.showNote(note, position);
+                } else if (text != null) {
+                    String t = text;
+                    if (t == null) {
+                        t = "";
+                    }
+                    t = list == null ? t : list + ":" + t;
+                    config.saveNote(new Note(note.getId(), processText(note.getText(), t)));
                 } else if (list != null) {
                     config.removeNote(note);
                     config.saveTask(new Task(note.getId(), list, note.getText(), false, null));
                     return forward(new SwitchListColor(ListColor.All.toString()), display, config);
-                } else if (text != null) {
-                    config.saveNote(new Note(note.getId(), processText(note.getText(), text)));
                 }
             }
             return reshow ? forward(new SwitchNotes(), display, config) : currentList;
