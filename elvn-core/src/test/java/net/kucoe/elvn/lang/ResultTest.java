@@ -39,7 +39,7 @@ public class ResultTest {
         }
         
         @Override
-        public void showHelp(String helpMessage) {
+        public void showHelp(final String helpMessage) {
             if (this.helpMessage != null) {
                 this.helpMessage = null;
             } else {
@@ -177,7 +177,7 @@ public class ResultTest {
     public void testNote2Task() throws Exception {
         LocateTask command = new LocateTask("g", null, 1);
         display.setCurrentList(ELCommand.Notes.el());
-        assertEquals(ListColor.All.toString(), command.execute(display, config));
+        assertEquals(ListColor.Green.toString(), command.execute(display, config));
         assertEquals(0, config.getNotes().size());
         assertEquals(2, config.getList(ListColor.Green).getTasks().size());
     }

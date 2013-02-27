@@ -60,9 +60,12 @@ public class LocateTask extends TaskResult {
                     t = list == null ? t : list + ":" + t;
                     config.saveNote(new Note(note.getId(), processText(note.getText(), t)));
                 } else if (list != null) {
-                    config.removeNote(note);
-                    config.saveTask(new Task(note.getId(), list, note.getText(), false, null));
-                    return forward(new SwitchListColor(ListColor.All.toString()), display, config);
+                    ListColor color = ListColor.color(list);
+                    if (color != null) {
+                        config.removeNote(note);
+                        config.saveTask(new Task(note.getId(), list, note.getText(), false, null));
+                        return forward(new SwitchListColor(color.toString()), display, config);
+                    }
                 }
             }
             return reshow ? forward(new SwitchNotes(), display, config) : currentList;
