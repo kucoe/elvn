@@ -193,12 +193,12 @@ public class Config {
                     && !(ListColor.Blue.equals(listColor) || ListColor.isSystemColor(listColor))) {
                 lists.remove(listColor);
             } else {
-                List newList = new List(label, listColor.toString());
+                List newList = new List(listColor, label);
                 newList.getTasks().addAll(list.getTasks());
                 lists.put(listColor, newList);
             }
         } else {
-            List newList = new List(label, listColor.toString());
+            List newList = new List(listColor, label);
             lists.put(listColor, newList);
         }
         commit();
@@ -336,6 +336,20 @@ public class Config {
     }
     
     /**
+     * Reads configuration from file.
+     * 
+     * @return string
+     * @throws IOException
+     */
+    public String getSyncConfig() throws IOException {
+        InputStream resource = getStream(getSyncConfigPath());
+        if (resource != null) {
+            return read(resource);
+        }
+        return null;
+    }
+    
+    /**
      * Save configuration to file.
      * 
      * @param string
@@ -395,26 +409,30 @@ public class Config {
         return date.equals(todayStart);
     }
     
+    @SuppressWarnings("unchecked")
     private synchronized void maybeInit() throws IOException, JsonException {
         if (lists.isEmpty() || fileUpdated()) {
+            String string = getConfig();
+            Jsonizer jsonizer = new Jsonizer();
+            Map<String, Object> map = jsonizer.read(string);
             lists = new HashMap<ListColor, List>();
-            List list = new List("All", All.toString());
+            List list = new List(All, "All");
             lists.put(All, list);
-            java.util.List<Map<String, Object>> listsPart = getConfigPart("lists");
+            java.util.List<Map<String, Object>> listsPart = (java.util.List<Map<String, Object>>) map.get("lists");
             for (Map<String, Object> listPart : listsPart) {
                 String label = (String) listPart.get("label");
                 String color = (String) listPart.get("color");
                 ListColor listColor = ListColor.color(color);
                 if (listColor != null) {
-                    list = new List(label, color);
+                    list = new List(listColor, label);
                     lists.put(listColor, list);
                 }
             }
-            list = new List("Today", Today.toString());
+            list = new List(Today, "Today");
             lists.put(Today, list);
-            list = new List("Completed", Done.toString());
+            list = new List(Done, "Completed");
             lists.put(Done, list);
-            java.util.List<Map<String, Object>> tasksPart = getConfigPart("tasks");
+            java.util.List<Map<String, Object>> tasksPart = (java.util.List<Map<String, Object>>) map.get("tasks");
             for (Map<String, Object> taskPart : tasksPart) {
                 String listName = (String) taskPart.get("list");
                 String text = (String) taskPart.get("text");
@@ -438,7 +456,7 @@ public class Config {
                 }
             }
             notes = new ArrayList<Note>();
-            java.util.List<Map<String, Object>> notesPart = getConfigPart("notes");
+            java.util.List<Map<String, Object>> notesPart = (java.util.List<Map<String, Object>>) map.get("notes");
             for (Map<String, Object> notePart : notesPart) {
                 String text = (String) notePart.get("text");
                 Long id = (Long) notePart.get("id");
@@ -516,15 +534,6 @@ public class Config {
         notes = new ArrayList<Note>();
     }
     
-    @SuppressWarnings("unchecked")
-    protected java.util.List<Map<String, Object>> getConfigPart(final String partName) throws IOException,
-            JsonException {
-        String string = getConfig();
-        Jsonizer jsonizer = new Jsonizer();
-        Map<String, Object> map = jsonizer.read(string);
-        return (java.util.List<Map<String, Object>>) map.get(partName);
-    }
-    
     protected InputStream getStream(final String path) throws IOException {
         File file = new File(path);
         if (file.exists()) {
@@ -561,6 +570,11 @@ public class Config {
     protected String getConfigPath() {
         checkElvnDir();
         return getUserDir() + "/.elvn/config.json";
+    }
+    
+    protected String getSyncConfigPath() {
+        checkElvnDir();
+        return getUserDir() + "/.elvn/sync.json";
     }
     
     protected String getHistoryPath() {

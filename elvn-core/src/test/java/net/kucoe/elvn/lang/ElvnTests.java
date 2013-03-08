@@ -5,7 +5,7 @@ import org.junit.runners.Suite;
 
 @SuppressWarnings("javadoc")
 @RunWith(Suite.class)
-@Suite.SuiteClasses({ ELTest.class, ResultTest.class })
+@Suite.SuiteClasses({ ELTest.class, ResultTest.class, ItemParserTest.class })
 public class ElvnTests {
     // empty
 }

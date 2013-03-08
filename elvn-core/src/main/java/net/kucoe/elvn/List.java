@@ -15,16 +15,16 @@ public class List {
     public static final String NOT_ASSIGNED = "Not assigned";
     
     private final String label;
-    private final String color;
+    private final ListColor color;
     private final java.util.List<Task> tasks = new ArrayList<Task>();
     
     /**
      * Constructs List.
      * 
-     * @param label
      * @param color
+     * @param label
      */
-    public List(final String label, final String color) {
+    public List(final ListColor color, final String label) {
         this.color = color;
         this.label = label;
     }
@@ -44,7 +44,7 @@ public class List {
      * @return the color String.
      */
     public String getColor() {
-        return color;
+        return color.toString();
     }
     
     /**
@@ -65,9 +65,9 @@ public class List {
     public String toString() {
         StringBuilder sb = new StringBuilder(getClass().getSimpleName());
         sb.append(":");
-        sb.append(getLabel());
-        sb.append("-");
         sb.append(getColor());
+        sb.append("-");
+        sb.append(getLabel());
         return sb.toString();
     }
     
