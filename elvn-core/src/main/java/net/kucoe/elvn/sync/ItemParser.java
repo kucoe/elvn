@@ -13,7 +13,10 @@ import net.kucoe.elvn.timer.TaskStage;
  */
 public class ItemParser {
     
-    private static final int ID_SIZE = 13;
+    /**
+     * Time/id size
+     */
+    public static final int ID_SIZE = 13;
     
     /**
      * Timer file name id
@@ -113,6 +116,9 @@ public class ItemParser {
     
     private Object parse() {
         Item item = Item.map.get(line[0]);
+        if (item == null) {
+            return null;
+        }
         String id, text;
         int read = 1;
         int length = line.length;
@@ -186,17 +192,8 @@ public class ItemParser {
      * @return string
      */
     public String getFileBody() {
-        if (item instanceof Note) {
-            int offset = ID_SIZE + 1;
-            return new String(line, offset, line.length - ID_SIZE + 1);
-        }
-        if (item instanceof List) {
-            int offset = 2;
-            return new String(line, offset, line.length - offset);
-        }
-        if (item instanceof TimerInfo) {
-            int offset = 1;
-            return new String(line, offset, line.length - offset);
+        if (item != null) {
+            return new String(line);
         }
         return null;
     }

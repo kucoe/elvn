@@ -7,13 +7,13 @@ import java.net.*;
 import java.security.KeyStore;
 import java.util.*;
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.net.ssl.*;
 
 import net.kucoe.elvn.*;
 import net.kucoe.elvn.sync.SyncEvent.EventType;
-import net.kucoe.elvn.util.Config;
-import net.kucoe.elvn.util.JsonException;
+import net.kucoe.elvn.util.*;
 
 /**
  * Remote sync support
@@ -23,7 +23,7 @@ import net.kucoe.elvn.util.JsonException;
 public class Sync {
     
     private static final String DEFAULT_SERVER_PATH = "https://kucoe.net/elvn/";
-    private static final long MONTH = 30 * 24 * 60 * 60 * 1000;
+    private static final long MONTH = 30 * 24 * 60 * 60 * 1000l;
     
     private final String email;
     private final String password;
@@ -32,8 +32,8 @@ public class Sync {
     private final int interval;
     private final String basePath;
     private final Config config;
-    private final SyncStatusListener statusListener;
     
+    private SyncStatusListener statusListener;
     private String userId;
     private boolean stop;
     private boolean online;
@@ -41,6 +41,9 @@ public class Sync {
     private Thread synchronizer;
     private final Map<String, SyncEvent> events = new HashMap<String, SyncEvent>();
     private long lastUpdate;
+    private boolean processing;
+    
+    private static Logger logger = Logger.getLogger("Sync");
     
     static {
         try {
@@ -69,10 +72,9 @@ public class Sync {
      * @param serverPath
      * @param basePath
      * @param config {@link Config}
-     * @param statusListener {@link SyncStatusListener}
      */
     public Sync(String email, String password, int ignoreLimit, int interval, String serverPath, String basePath,
-            Config config, SyncStatusListener statusListener) {
+            Config config) {
         this.email = email;
         this.password = password;
         this.serverPath = serverPath == null ? DEFAULT_SERVER_PATH : serverPath;
@@ -80,20 +82,29 @@ public class Sync {
         this.interval = interval;
         this.basePath = basePath;
         this.config = config;
+        online = true;
+    }
+    
+    /**
+     * Overrides statusListener the statusListener.
+     * 
+     * @param statusListener the statusListener to set.
+     */
+    public void setStatusListener(final SyncStatusListener statusListener) {
         this.statusListener = statusListener;
     }
     
     /**
      * Changes service to online. Will not work if there is no connection.
      */
-    public synchronized void online() {
+    public void online() {
         online = true;
     }
     
     /**
      * Changes service to go offline.
      **/
-    public synchronized void offline() {
+    public void offline() {
         online = false;
     }
     
@@ -120,6 +131,7 @@ public class Sync {
                         } catch (Exception e) {
                             showSynchronizedFailedStatus();
                             e.printStackTrace();
+                            processing = false;
                         }
                     }
                 }
@@ -135,10 +147,18 @@ public class Sync {
      * @throws JsonException
      * @throws IOException
      */
-    public synchronized void sync() throws IOException, JsonException {
+    public void sync() throws IOException, JsonException {
+        if (processing) {
+            return;
+        }
+        processing = true;
         try {
             checkUser();
         } catch (Exception e) {
+            e.printStackTrace();
+            if (userId == null) {
+                return;
+            }
             // maybe connection lost, continue
         }
         if (isError(userId)) {
@@ -161,18 +181,21 @@ public class Sync {
             syncEvents(changes);
             showSynchronizedStatus();
         }
+        processing = false;
     }
     
     private void checkUser() throws Exception {
         userId = ask("user");
+        logger.info("User id  is : " + userId);
     }
     
     private void checkConfig() throws IOException, JsonException {
-        File file = new File(basePath + userId + "/");
+        File file = new File(getUserPath());
         if (!file.exists()) {
             file.mkdir();
             init(file);
         }
+        logger.info("Config file was checked : " + getUserPath());
     }
     
     private void init(final File userDir) throws IOException, JsonException {
@@ -203,6 +226,7 @@ public class Sync {
         }
         this.lastUpdate = new Date().getTime();
         showInitializedStatus();
+        logger.info("Config folder initialized : " + getUserPath());
     }
     
     private void put() throws IOException, JsonException {
@@ -231,7 +255,7 @@ public class Sync {
     }
     
     private void restoreSavedEvents() throws IOException {
-        String path = userId == null ? basePath + "/events.log" : basePath + userId + "/events.log";
+        String path = userId == null ? basePath + "events.log" : getUserPath() + "events.log";
         File file = new File(path);
         if (file.exists()) {
             BufferedReader reader = new BufferedReader(new FileReader(file));
@@ -251,7 +275,7 @@ public class Sync {
     }
     
     private void saveEvents(String rawEvents) throws IOException {
-        String path = userId == null ? basePath + "/events.log" : basePath + userId + "/events.log";
+        String path = userId == null ? basePath + "events.log" : getUserPath() + "events.log";
         File file = new File(path);
         if (!file.exists()) {
             file.createNewFile();
@@ -275,22 +299,25 @@ public class Sync {
                 continue;
             }
             net.kucoe.elvn.List list = config.getList(color);
+            if (list == null) {
+                continue;
+            }
             if (!Done.equals(color)) {
                 events.add(new SyncEvent(list, EventType.Create, null));
             }
             for (Task task : list.getTasks()) {
                 events.add(new SyncEvent(task, EventType.Create, null));
             }
-            events.add(new SyncEvent(new TimerInfo(null, null, 0), EventType.Create, null));
         }
-        return null;
+        events.add(new SyncEvent(new TimerInfo(null, null, 0), EventType.Create, null));
+        return events;
     }
     
     private List<SyncEvent> getServerUpdates() throws IOException, JsonException {
         long lastUpdate = getLastUpdate();
         final List<SyncEvent> events = new ArrayList<SyncEvent>();
         if ((new Date().getTime() - lastUpdate) > MONTH) {
-            init(new File(basePath + userId + "/"));
+            init(new File(getUserPath()));
             return events;
         }
         ask("get", new InputListener() {
@@ -317,7 +344,7 @@ public class Sync {
         if (lastUpdate > 0) {
             return lastUpdate;
         }
-        String path = userId == null ? basePath + "/sync.log" : basePath + userId + "/sync.log";
+        String path = userId == null ? basePath + "sync.log" : getUserPath() + "sync.log";
         File file = new File(path);
         if (file.exists()) {
             BufferedReader reader = new BufferedReader(new FileReader(file));
@@ -330,11 +357,11 @@ public class Sync {
                 reader.close();
             }
         }
-        return 0;
+        return new Date().getTime();
     }
     
     private void saveLastUpdate() throws IOException {
-        String path = userId == null ? basePath + "/sync.log" : basePath + userId + "/sync.log";
+        String path = userId == null ? basePath + "sync.log" : getUserPath() + "sync.log";
         File file = new File(path);
         if (!file.exists()) {
             file.createNewFile();
@@ -358,12 +385,84 @@ public class Sync {
         return updates;
     }
     
-    private void applyUpdates(List<SyncEvent> updates) throws IOException {
-        File file = new File(basePath + userId + "/");
+    private void applyUpdates(List<SyncEvent> updates) throws IOException, JsonException {
+        File userDir = new File(getUserPath());
         for (SyncEvent event : updates) {
-            String line = ItemParser.toRaw(event.getItem());
-            writeFile(line, file);
+            String fileName = event.getItemId();
+            if (fileName != null) {
+                File file = new File(userDir, fileName);
+                String body = null;
+                if (!file.exists()) {
+                    file.createNewFile();
+                } else {
+                    body = getFileBody(file);
+                }
+                body = event.apply(body);
+                if (body != null) {
+                    FileWriter writer = new FileWriter(file);
+                    writer.write(body);
+                    writer.flush();
+                    writer.close();
+                } else {
+                    file.delete();
+                }
+            }
         }
+        updateConfig();
+    }
+    
+    protected String getFileBody(File file) throws IOException {
+        String result = null;
+        BufferedReader reader = new BufferedReader(new FileReader(file));
+        try {
+            result = reader.readLine();
+        } finally {
+            reader.close();
+        }
+        return result;
+    }
+    
+    private void updateConfig() throws IOException, JsonException {
+        List<Map<String, Object>> listsPart = new LinkedList<Map<String, Object>>();
+        List<Map<String, Object>> tasksPart = new LinkedList<Map<String, Object>>();
+        List<Map<String, Object>> notesPart = new LinkedList<Map<String, Object>>();
+        File[] files = new File(getUserPath()).listFiles();
+        for (File file : files) {
+            String line = getFileBody(file);
+            ItemParser parser = new ItemParser(line);
+            Object item = parser.getItem();
+            if (item instanceof net.kucoe.elvn.List) {
+                Map<String, Object> map = new LinkedHashMap<String, Object>();
+                map.put("label", ((net.kucoe.elvn.List) item).getLabel());
+                map.put("color", ((net.kucoe.elvn.List) item).getColor());
+                listsPart.add(map);
+            } else if (item instanceof Task) {
+                Map<String, Object> map = new LinkedHashMap<String, Object>();
+                map.put("id", ((Task) item).getId());
+                map.put("list", ((Task) item).getList());
+                map.put("text", ((Task) item).getText());
+                map.put("planned", ((Task) item).isPlanned());
+                map.put("completedOn", ((Task) item).getCompletedOn());
+                tasksPart.add(map);
+            } else if (item instanceof Note) {
+                Map<String, Object> map = new LinkedHashMap<String, Object>();
+                map.put("id", ((Note) item).getId());
+                map.put("text", ((Note) item).getText());
+                notesPart.add(map);
+            }
+        }
+        Map<String, Object> main = new LinkedHashMap<String, Object>();
+        main.put("lists", listsPart);
+        main.put("tasks", tasksPart);
+        main.put("notes", notesPart);
+        String json = new Jsonizer().write(main);
+        json = json.replace("},", "},\n");
+        json = json.replace("],", "],\n");
+        config.saveConfig(json);
+    }
+    
+    protected String getUserPath() {
+        return basePath + userId + "/";
     }
     
     private List<SyncEvent> calculateChanges(Map<String, SyncEvent> clientMap, List<SyncEvent> serverList) {
@@ -373,6 +472,11 @@ public class Sync {
             SyncEvent change = clientMap.get(itemId);
             if (change != null && !change.after(update)) {
                 changes.remove(change);
+            }
+        }
+        for (SyncEvent event : clientMap.values()) {
+            if (event.stale(ignoreLimit)) {
+                changes.remove(event);
             }
         }
         return changes;
@@ -403,6 +507,10 @@ public class Sync {
         outStream.flush();
         outStream.close();
         
+        int code = urlConnection.getResponseCode();
+        if (code != 200) {
+            throw new IOException(urlConnection.getResponseMessage());
+        }
         BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
         InputListener l = listener;
         if (l == null) {
@@ -411,7 +519,7 @@ public class Sync {
         try {
             String inputLine;
             while ((inputLine = in.readLine()) != null) {
-                if (!listener.onNextLine(inputLine)) {
+                if (!l.onNextLine(inputLine)) {
                     break;
                 }
             }
@@ -427,8 +535,9 @@ public class Sync {
         for (SyncEvent event : events) {
             if (i > 0) {
                 sb.append('\n');
-                sb.append(event.toString());
             }
+            sb.append(event.toString());
+            i++;
         }
         return sb.toString();
     }

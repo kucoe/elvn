@@ -19,9 +19,21 @@ public class SyncEvent {
         
         Modify('1'),
         
-        List('2'),
+        Append('2'),
         
-        Timer('3');
+        Replace('3'),
+        
+        Plan('4'),
+        
+        Unplan('5'),
+        
+        Done('6'),
+        
+        Undone('7'),
+        
+        Run('8'),
+        
+        Delete('9');
         
         protected char bit;
         protected static Map<Character, EventType> map = new HashMap<Character, EventType>();
@@ -96,6 +108,7 @@ public class SyncEvent {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(type.bit);
+        sb.append(date.getTime());
         sb.append(ItemParser.toRaw(item));
         return sb.toString();
     }
@@ -112,8 +125,9 @@ public class SyncEvent {
         }
         char bit = raw.charAt(0);
         EventType type = EventType.map.get(bit);
-        Object item = new ItemParser(raw.substring(1));
-        return new SyncEvent(item, type, null);
+        String timePart = raw.substring(1, ItemParser.ID_SIZE + 1);
+        Object item = new ItemParser(raw.substring(ItemParser.ID_SIZE + 1));
+        return new SyncEvent(item, type, null, new Date(toLong(timePart)));
     }
     
     /**
@@ -135,6 +149,52 @@ public class SyncEvent {
     }
     
     /**
+     * Returns whether event stale more than days in argument
+     * 
+     * @param days
+     * @return boolean
+     */
+    public boolean stale(int days) {
+        long i = days * 24 * 60 * 60 * 1000;
+        long diff = new Date().getTime() - date.getTime();
+        return diff > i;
+    }
+    
+    /**
+     * Apply event changes into file
+     * 
+     * @param fileBody
+     * @return string
+     */
+    public String apply(String fileBody) {
+        String main = ItemParser.toRaw(item);
+        switch (type) {
+            case Create:
+                return main;
+            case Append:
+                return main;
+            case Modify:
+                return main;
+            case Replace:
+                return main;
+            case Plan:
+                return main;
+            case Unplan:
+                return main;
+            case Done:
+                return main;
+            case Undone:
+                return main;
+            case Run:
+                return main;
+            case Delete:
+                return null;
+            default:
+                return null;
+        }
+    }
+    
+    /**
      * Returns whether this event is after argument. After means different type or later date.
      * 
      * @param event
@@ -148,5 +208,15 @@ public class SyncEvent {
             return true;
         }
         return date.after(event.date);
+    }
+    
+    private static long toLong(String string) {
+        long l = 0;
+        try {
+            l = Long.valueOf(string);
+        } catch (NumberFormatException e) {
+            // ignore
+        }
+        return l;
     }
 }

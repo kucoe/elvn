@@ -8,6 +8,8 @@ import java.util.*;
 
 import net.kucoe.elvn.*;
 import net.kucoe.elvn.List;
+import net.kucoe.elvn.sync.Sync;
+import net.kucoe.elvn.sync.SyncStatusListener;
 import net.kucoe.elvn.timer.OnTime;
 import net.kucoe.elvn.timer.Timer;
 
@@ -23,6 +25,28 @@ public class Config {
     private Date todayStart;
     private long lastModified;
     private StatusUpdateListener listener;
+    private Sync sync;
+    
+    /**
+     * Constructs Config.
+     */
+    public Config() {
+        try {
+            String string = getSyncConfig();
+            Jsonizer jsonizer = new Jsonizer();
+            Map<String, Object> map = jsonizer.read(string);
+            String email = (String) map.get("email");
+            String password = (String) map.get("password");
+            Long ignore = (Long) map.get("ignore");
+            Long interval = (Long) map.get("interval");
+            String server = (String) map.get("server");
+            int ignoreLimit = ignore == null ? 30 : ignore.intValue();
+            int inter = interval == null ? 1 : interval.intValue();
+            sync = new Sync(email, password, ignoreLimit, inter, server, getBasePath(), this);
+        } catch (Exception e) {
+            // ignore syncronization;
+        }
+    }
     
     /**
      * Overrides listener the listener.
@@ -31,6 +55,17 @@ public class Config {
      */
     public void setStatusListener(final StatusUpdateListener listener) {
         this.listener = listener;
+    }
+    
+    /**
+     * Overrides listener the listener.
+     * 
+     * @param listener the listener to set.
+     */
+    public void setSyncStatusListener(final SyncStatusListener listener) {
+        if (sync != null) {
+            sync.setStatusListener(listener);
+        }
     }
     
     /**
@@ -411,6 +446,9 @@ public class Config {
     
     @SuppressWarnings("unchecked")
     private synchronized void maybeInit() throws IOException, JsonException {
+        if (sync != null) {
+            sync.start();
+        }
         if (lists.isEmpty() || fileUpdated()) {
             String string = getConfig();
             Jsonizer jsonizer = new Jsonizer();
@@ -569,24 +607,28 @@ public class Config {
     
     protected String getConfigPath() {
         checkElvnDir();
-        return getUserDir() + "/.elvn/config.json";
+        return getBasePath() + "config.json";
     }
     
     protected String getSyncConfigPath() {
         checkElvnDir();
-        return getUserDir() + "/.elvn/sync.json";
+        return getBasePath() + "sync.json";
     }
     
     protected String getHistoryPath() {
         checkElvnDir();
-        return getUserDir() + "/.elvn/history.json";
+        return getBasePath() + "history.json";
     }
     
     protected void checkElvnDir() {
-        File file = new File(getUserDir() + "/.elvn/");
+        File file = new File(getBasePath());
         if (!file.exists()) {
             file.mkdir();
         }
+    }
+    
+    protected String getBasePath() {
+        return getUserDir() + "/.elvn/";
     }
     
     protected String getUserDir() {
