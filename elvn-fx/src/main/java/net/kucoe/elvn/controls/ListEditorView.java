@@ -24,7 +24,7 @@ public class ListEditorView extends ListView<List> {
             }
             List list = tool.getList(color);
             if (list == null) {
-                list = new List(List.NOT_ASSIGNED, color.toString());
+                list = new List(color, List.NOT_ASSIGNED);
             }
             getItems().add(list);
         }
