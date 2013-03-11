@@ -7,7 +7,6 @@ import java.net.*;
 import java.security.KeyStore;
 import java.util.*;
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.net.ssl.*;
 
@@ -42,8 +41,7 @@ public class Sync {
     private final Map<String, SyncEvent> events = new HashMap<String, SyncEvent>();
     private long lastUpdate;
     private boolean processing;
-    
-    private static Logger logger = Logger.getLogger("Sync");
+    private boolean success;
     
     static {
         try {
@@ -73,8 +71,8 @@ public class Sync {
      * @param basePath
      * @param config {@link Config}
      */
-    public Sync(String email, String password, int ignoreLimit, int interval, String serverPath, String basePath,
-            Config config) {
+    public Sync(final String email, final String password, final int ignoreLimit, final int interval,
+            final String serverPath, final String basePath, final Config config) {
         this.email = email;
         this.password = password;
         this.serverPath = serverPath == null ? DEFAULT_SERVER_PATH : serverPath;
@@ -113,6 +111,18 @@ public class Sync {
      */
     public synchronized void stop() {
         stop = true;
+        try {
+            List<SyncEvent> changes = calculateChanges(getClientEvents(), new ArrayList<SyncEvent>());
+            if (changes != null && !changes.isEmpty()) {
+                saveEvents(toRaw(changes));
+            }
+            saveLastUpdate();
+        } catch (IOException e) {
+            // ignore
+        }
+        synchronized (synchronizer) {
+            synchronizer.notifyAll();
+        }
         synchronizer = null;
     }
     
@@ -127,9 +137,11 @@ public class Sync {
                     while (!stop) {
                         try {
                             sync();
-                            Thread.sleep(millis);
+                            synchronized (synchronizer) {
+                                synchronizer.wait(millis);
+                            }
                         } catch (Exception e) {
-                            showSynchronizedFailedStatus();
+                            showSynchronizedFailedStatus(e.getMessage());
                             e.printStackTrace();
                             processing = false;
                         }
@@ -186,7 +198,6 @@ public class Sync {
     
     private void checkUser() throws Exception {
         userId = ask("user");
-        logger.info("User id  is : " + userId);
     }
     
     private void checkConfig() throws IOException, JsonException {
@@ -195,12 +206,11 @@ public class Sync {
             file.mkdir();
             init(file);
         }
-        logger.info("Config file was checked : " + getUserPath());
     }
     
     private void init(final File userDir) throws IOException, JsonException {
         ask("init", new InputListener() {
-            public boolean onNextLine(String line) {
+            public boolean onNextLine(final String line) {
                 if (isError(line)) {
                     return false;
                 }
@@ -224,9 +234,8 @@ public class Sync {
             put();
             init(userDir);
         }
-        this.lastUpdate = new Date().getTime();
+        lastUpdate = new Date().getTime();
         showInitializedStatus();
-        logger.info("Config folder initialized : " + getUserPath());
     }
     
     private void put() throws IOException, JsonException {
@@ -234,7 +243,7 @@ public class Sync {
         syncEvents(events);
     }
     
-    private void syncEvents(List<SyncEvent> events) throws IOException {
+    private void syncEvents(final List<SyncEvent> events) throws IOException {
         if (events.isEmpty()) {
             return;
         }
@@ -274,7 +283,10 @@ public class Sync {
         }
     }
     
-    private void saveEvents(String rawEvents) throws IOException {
+    private void saveEvents(final String rawEvents) throws IOException {
+        if (rawEvents == null || rawEvents.isEmpty()) {
+            return;
+        }
         String path = userId == null ? basePath + "events.log" : getUserPath() + "events.log";
         File file = new File(path);
         if (!file.exists()) {
@@ -323,7 +335,7 @@ public class Sync {
         ask("get", new InputListener() {
             
             @Override
-            public boolean onNextLine(String line) {
+            public boolean onNextLine(final String line) {
                 if (isError(line)) {
                     return false;
                 }
@@ -361,6 +373,9 @@ public class Sync {
     }
     
     private void saveLastUpdate() throws IOException {
+        if (lastUpdate == 0) {
+            return;
+        }
         String path = userId == null ? basePath + "sync.log" : getUserPath() + "sync.log";
         File file = new File(path);
         if (!file.exists()) {
@@ -374,7 +389,7 @@ public class Sync {
         }
     }
     
-    private List<SyncEvent> calculateUpdates(Map<String, SyncEvent> clientMap, List<SyncEvent> serverList) {
+    private List<SyncEvent> calculateUpdates(final Map<String, SyncEvent> clientMap, final List<SyncEvent> serverList) {
         List<SyncEvent> updates = new ArrayList<SyncEvent>();
         for (SyncEvent event : serverList) {
             SyncEvent change = clientMap.get(event.getItemId());
@@ -385,7 +400,7 @@ public class Sync {
         return updates;
     }
     
-    private void applyUpdates(List<SyncEvent> updates) throws IOException, JsonException {
+    private void applyUpdates(final List<SyncEvent> updates) throws IOException, JsonException {
         File userDir = new File(getUserPath());
         for (SyncEvent event : updates) {
             String fileName = event.getItemId();
@@ -411,7 +426,7 @@ public class Sync {
         updateConfig();
     }
     
-    protected String getFileBody(File file) throws IOException {
+    protected String getFileBody(final File file) throws IOException {
         String result = null;
         BufferedReader reader = new BufferedReader(new FileReader(file));
         try {
@@ -465,7 +480,7 @@ public class Sync {
         return basePath + userId + "/";
     }
     
-    private List<SyncEvent> calculateChanges(Map<String, SyncEvent> clientMap, List<SyncEvent> serverList) {
+    private List<SyncEvent> calculateChanges(final Map<String, SyncEvent> clientMap, final List<SyncEvent> serverList) {
         List<SyncEvent> changes = new ArrayList<SyncEvent>(clientMap.values());
         for (SyncEvent update : serverList) {
             String itemId = update.getItemId();
@@ -482,11 +497,11 @@ public class Sync {
         return changes;
     }
     
-    private String ask(String what, String... params) throws IOException {
+    private String ask(final String what, final String... params) throws IOException {
         return ask(what, null, params);
     }
     
-    private String ask(String what, InputListener listener, String... params) throws IOException {
+    private String ask(final String what, final InputListener listener, final String... params) throws IOException {
         if (!online) {
             throw new IOException("Offline");
         }
@@ -529,7 +544,7 @@ public class Sync {
         return l.getInputString();
     }
     
-    private String toRaw(List<SyncEvent> events) {
+    private String toRaw(final List<SyncEvent> events) {
         StringBuilder sb = new StringBuilder();
         int i = 0;
         for (SyncEvent event : events) {
@@ -542,7 +557,7 @@ public class Sync {
         return sb.toString();
     }
     
-    protected void writeFile(String input, File userDir) throws IOException {
+    protected void writeFile(final String input, final File userDir) throws IOException {
         ItemParser parser = new ItemParser(input);
         String fileName = parser.getFileName();
         if (fileName != null) {
@@ -564,7 +579,7 @@ public class Sync {
         return new InputListener() {
             private final StringBuilder sb = new StringBuilder();
             
-            public boolean onNextLine(String line) {
+            public boolean onNextLine(final String line) {
                 sb.append(line);
                 return true;
             }
@@ -575,7 +590,7 @@ public class Sync {
         };
     }
     
-    private String params(String... params) {
+    private String params(final String... params) {
         if (params == null) {
             return null;
         }
@@ -590,7 +605,7 @@ public class Sync {
         return buildParams("email", email, "password", password);
     }
     
-    private String buildParams(String... params) {
+    private String buildParams(final String... params) {
         final int size = params.length;
         if (size % 2 > 0) {
             throw new IllegalArgumentException("Should be paired");
@@ -622,7 +637,7 @@ public class Sync {
         return sb.toString();
     }
     
-    private String encode(String text) {
+    private String encode(final String text) {
         try {
             return URLEncoder.encode(text, "UTF-8");
         } catch (UnsupportedEncodingException e) {
@@ -631,31 +646,33 @@ public class Sync {
         }
     }
     
-    protected boolean isError(String input) {
+    protected boolean isError(final String input) {
         return "-1".equals(input);
     }
     
     private void showAuthFailedStatus() {
         if (statusListener != null) {
-            statusListener.onStatusChange("Sync is offline: Authorization failed");
+            statusListener.onStatusChange("Sync is offline: Authorization failed for " + email);
         }
     }
     
     private void showInitializedStatus() {
         if (statusListener != null) {
-            statusListener.onStatusChange("Sync is online: Initialized sucessfully");
+            statusListener.onStatusChange("Sync is online: Initialized sucessfully into " + userId);
         }
     }
     
     private void showSynchronizedStatus() {
-        if (statusListener != null) {
-            statusListener.onStatusChange("Sync is online: Synchronized sucessfully");
+        if (statusListener != null && !success) {
+            statusListener.onStatusChange("Sync is online: Synchronized sucessfully as " + email);
         }
+        success = true;
     }
     
-    private void showSynchronizedFailedStatus() {
+    private void showSynchronizedFailedStatus(final String message) {
+        success = false;
         if (statusListener != null) {
-            statusListener.onStatusChange("Sync is online: Synchronization failed");
+            statusListener.onStatusChange("Sync is online: Synchronization failed, cause:" + message);
         }
     }
     

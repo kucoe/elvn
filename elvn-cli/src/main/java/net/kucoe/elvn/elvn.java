@@ -8,6 +8,7 @@ import jline.History;
 import net.kucoe.elvn.lang.EL;
 import net.kucoe.elvn.lang.result.ELResult;
 import net.kucoe.elvn.lang.result.SwitchListColor;
+import net.kucoe.elvn.sync.Sync;
 import net.kucoe.elvn.timer.*;
 import net.kucoe.elvn.util.*;
 
@@ -29,6 +30,11 @@ public class elvn {
         reader.addCompletor(createCompletor());
         reader.setDefaultPrompt("elvn>");
         Config config = new Config();
+        Sync sync = config.getSync();
+        if (sync != null) {
+            sync.start();
+            sync.setStatusListener(new ConsoleSyncStatus());
+        }
         reader.setHistory(createHistory(config));
         Display display = new ConsoleDisplay();
         final ConsoleTimerView timerView = new ConsoleTimerView();
@@ -45,7 +51,6 @@ public class elvn {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (line.equalsIgnoreCase("\\q") || line.equalsIgnoreCase("exit")) {
-                    timerView.onExit();
                     break;
                 }
                 if (line.equalsIgnoreCase("\\c")) {
@@ -59,6 +64,11 @@ public class elvn {
                         display.setCurrentList(res);
                     }
                 }
+            }
+            Timer.shutdown();
+            timerView.onExit();
+            if (sync != null) {
+                sync.stop();
             }
         } catch (Exception e) {
             e.printStackTrace();

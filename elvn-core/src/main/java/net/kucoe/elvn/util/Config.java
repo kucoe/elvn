@@ -9,7 +9,6 @@ import java.util.*;
 import net.kucoe.elvn.*;
 import net.kucoe.elvn.List;
 import net.kucoe.elvn.sync.Sync;
-import net.kucoe.elvn.sync.SyncStatusListener;
 import net.kucoe.elvn.timer.OnTime;
 import net.kucoe.elvn.timer.Timer;
 
@@ -28,44 +27,12 @@ public class Config {
     private Sync sync;
     
     /**
-     * Constructs Config.
-     */
-    public Config() {
-        try {
-            String string = getSyncConfig();
-            Jsonizer jsonizer = new Jsonizer();
-            Map<String, Object> map = jsonizer.read(string);
-            String email = (String) map.get("email");
-            String password = (String) map.get("password");
-            Long ignore = (Long) map.get("ignore");
-            Long interval = (Long) map.get("interval");
-            String server = (String) map.get("server");
-            int ignoreLimit = ignore == null ? 30 : ignore.intValue();
-            int inter = interval == null ? 1 : interval.intValue();
-            sync = new Sync(email, password, ignoreLimit, inter, server, getBasePath(), this);
-        } catch (Exception e) {
-            // ignore syncronization;
-        }
-    }
-    
-    /**
      * Overrides listener the listener.
      * 
      * @param listener the listener to set.
      */
     public void setStatusListener(final StatusUpdateListener listener) {
         this.listener = listener;
-    }
-    
-    /**
-     * Overrides listener the listener.
-     * 
-     * @param listener the listener to set.
-     */
-    public void setSyncStatusListener(final SyncStatusListener listener) {
-        if (sync != null) {
-            sync.setStatusListener(listener);
-        }
     }
     
     /**
@@ -439,6 +406,32 @@ public class Config {
         return today + " Planned: " + planned + "; Done: " + done;
     }
     
+    /**
+     * Returns {@link Sync} if not yet exists initialize it from configs
+     * 
+     * @return {@link Sync}
+     * @throws IOException
+     * @throws JsonException
+     */
+    public Sync getSync() throws IOException, JsonException {
+        if (sync == null) {
+            String string = getSyncConfig();
+            if (string != null) {
+                Jsonizer jsonizer = new Jsonizer();
+                Map<String, Object> map = jsonizer.read(string);
+                String email = (String) map.get("email");
+                String password = (String) map.get("password");
+                Long ignore = (Long) map.get("ignore");
+                Long interval = (Long) map.get("interval");
+                String server = (String) map.get("server");
+                int ignoreLimit = ignore == null ? 30 : ignore.intValue();
+                int inter = interval == null ? 1 : interval.intValue();
+                sync = new Sync(email, password, ignoreLimit, inter, server, getBasePath(), this);
+            }
+        }
+        return sync;
+    }
+    
     private boolean isToday(final Date date) {
         initToday();
         return date.equals(todayStart);
@@ -446,9 +439,6 @@ public class Config {
     
     @SuppressWarnings("unchecked")
     private synchronized void maybeInit() throws IOException, JsonException {
-        if (sync != null) {
-            sync.start();
-        }
         if (lists.isEmpty() || fileUpdated()) {
             String string = getConfig();
             Jsonizer jsonizer = new Jsonizer();

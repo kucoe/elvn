@@ -1,21 +1,32 @@
 package net.kucoe.elvn.lang;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
 
-import net.kucoe.elvn.ListColor;
+import net.kucoe.elvn.sync.Sync;
+import net.kucoe.elvn.sync.SyncStatusListener;
 
 import org.junit.*;
 
 @SuppressWarnings("javadoc")
 public class SyncTest extends AbstractConfigTest {
     
+    ConfigMock wronConfig;
+    
     class ConfigSyncMock extends ConfigMock {
         @Override
         public String getSyncConfig() throws IOException {
-            return "{\"email\":\"becevka@mail.ru\",\"password\":\"64555\"}";
+            return "{\"email\":\"becevka@mail.ru\",\"password\":\"aaa\"}";
+        }
+    }
+    
+    class ConfigSyncMockWrong extends ConfigMock {
+        @Override
+        public String getSyncConfig() throws IOException {
+            return "{\"email\":\"becevka@mail.ru\",\"password\":\"bbb\"}";
         }
     }
     
@@ -23,6 +34,7 @@ public class SyncTest extends AbstractConfigTest {
     public void setUp() {
         super.setUp();
         config = new ConfigSyncMock();
+        wronConfig = new ConfigSyncMockWrong();
         deleteDir();
     }
     
@@ -35,12 +47,42 @@ public class SyncTest extends AbstractConfigTest {
     
     @Test
     public void testInit() throws Exception {
-        config.getList(ListColor.Today);
+        Sync sync = config.getSync();
+        if (sync != null) {
+            sync.setStatusListener(new SyncStatusListener() {
+                public void onStatusChange(final String status) {
+                    System.out.println(status);
+                }
+            });
+            sync.start();
+        }
         Thread.sleep(10000);
         File dir = new File(getSyncDir());
         assertTrue(dir.exists());
         File listFile = new File(dir, "blue");
         assertTrue(listFile.exists());
+        if (sync != null) {
+            sync.stop();
+        }
+    }
+    
+    @Test
+    public void testAuthError() throws Exception {
+        Sync sync = wronConfig.getSync();
+        if (sync != null) {
+            sync.setStatusListener(new SyncStatusListener() {
+                public void onStatusChange(final String status) {
+                    System.out.println(status);
+                }
+            });
+            sync.start();
+        }
+        Thread.sleep(10000);
+        File dir = new File(getSyncDir());
+        assertFalse(dir.exists());
+        if (sync != null) {
+            sync.stop();
+        }
     }
     
     private void deleteDir() {
@@ -49,13 +91,14 @@ public class SyncTest extends AbstractConfigTest {
     }
     
     protected String getSyncDir() {
-        return config.getConfigPath().replace("test.json", "1362771947351");
+        return config.getConfigPath().replace("test.json", "1362993619661");
     }
     
-    private void del(File file) {
+    private void del(final File file) {
         if (file.isDirectory()) {
-            for (File c : file.listFiles())
+            for (File c : file.listFiles()) {
                 del(c);
+            }
         }
         file.delete();
     }
