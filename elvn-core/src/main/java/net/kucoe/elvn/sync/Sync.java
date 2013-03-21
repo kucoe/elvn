@@ -142,7 +142,6 @@ public class Sync {
                             }
                         } catch (Exception e) {
                             showSynchronizedFailedStatus(e.getMessage());
-                            e.printStackTrace();
                             processing = false;
                         }
                     }
@@ -167,8 +166,9 @@ public class Sync {
         try {
             checkUser();
         } catch (Exception e) {
-            e.printStackTrace();
+            showSynchronizedFailedStatus(e.getMessage());
             if (userId == null) {
+                processing = false;
                 return;
             }
             // maybe connection lost, continue
@@ -221,7 +221,6 @@ public class Sync {
                     writeFile(line, userDir);
                     return true;
                 } catch (IOException e) {
-                    e.printStackTrace();
                     return false;
                 }
             }
@@ -641,7 +640,6 @@ public class Sync {
         try {
             return URLEncoder.encode(text, "UTF-8");
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
             return text;
         }
     }
