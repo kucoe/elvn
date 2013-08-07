@@ -1,8 +1,8 @@
-package net.kucoe.elvn.lang;
+package net.kucoe.elvn;
 
 import static org.junit.Assert.*;
-import net.kucoe.elvn.ListColor;
-import net.kucoe.elvn.Task;
+import net.kucoe.elvn.lang.EL;
+import net.kucoe.elvn.lang.ELCommand;
 import net.kucoe.elvn.lang.result.*;
 import net.kucoe.elvn.timer.TaskStage;
 import net.kucoe.elvn.timer.Timer;

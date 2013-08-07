@@ -1,4 +1,6 @@
-package net.kucoe.elvn.lang;
+package net.kucoe.elvn;
+
+import net.kucoe.elvn.lang.ELTest;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;

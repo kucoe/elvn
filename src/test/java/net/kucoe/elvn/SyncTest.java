@@ -1,4 +1,4 @@
-package net.kucoe.elvn.lang;
+package net.kucoe.elvn;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

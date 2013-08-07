@@ -1,10 +1,9 @@
-package net.kucoe.elvn.lang;
+package net.kucoe.elvn;
 
 import static org.junit.Assert.*;
 
 import java.util.Date;
 
-import net.kucoe.elvn.*;
 import net.kucoe.elvn.sync.ItemParser;
 import net.kucoe.elvn.timer.TaskStage;
 

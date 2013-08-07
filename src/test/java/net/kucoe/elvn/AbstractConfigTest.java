@@ -1,9 +1,8 @@
-package net.kucoe.elvn.lang;
+package net.kucoe.elvn;
 
 import java.io.File;
 import java.io.IOException;
 
-import net.kucoe.elvn.*;
 import net.kucoe.elvn.timer.*;
 import net.kucoe.elvn.util.*;
 
