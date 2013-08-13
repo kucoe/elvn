@@ -14,4 +14,12 @@ public interface SyncStatusListener {
      */
     void onStatusChange(final String status);
     
+    /**
+     * Called when sync needs user password
+     * 
+     * @param prompt
+     * @return received password
+     */
+    String promptForPassword(final String prompt);
+    
 }

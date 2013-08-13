@@ -14,9 +14,19 @@ import net.kucoe.elvn.lang.ELCommand;
 public class ConsoleDisplay implements Display {
     
     private String currentList;
+    private final Console console;
+    
+    /**
+     * Constructs ConsoleDisplay.
+     * 
+     * @param console
+     */
+    public ConsoleDisplay(final Console console) {
+        this.console = console;
+    }
     
     @Override
-    public void showHelp(String helpMessage) {
+    public void showHelp(final String helpMessage) {
         showBodyText(helpMessage);
     }
     
@@ -53,7 +63,7 @@ public class ConsoleDisplay implements Display {
         Collections.sort(tasks);
         for (Task task : tasks) {
             String format = formatTask(ListColor.All.toString(), task, i);
-            System.out.println(format);
+            console.write(format);
             i++;
         }
     }
@@ -66,7 +76,7 @@ public class ConsoleDisplay implements Display {
         Collections.sort(tasks);
         for (Task task : tasks) {
             String format = formatTask(list.getColor(), task, i);
-            System.out.println(format);
+            console.write(format);
             i++;
         }
     }
@@ -77,7 +87,7 @@ public class ConsoleDisplay implements Display {
         int i = 1;
         Collections.sort(notes);
         for (Note note : notes) {
-            System.out.println(formatNote(note, i));
+            console.write(formatNote(note, i));
             i++;
         }
     }
@@ -133,11 +143,11 @@ public class ConsoleDisplay implements Display {
     }
     
     protected void showHeader(final String header) {
-        System.out.println("\t" + header);
+        console.write("\t" + header);
     }
     
     protected void showBodyText(final String text) {
-        System.out.println(text);
+        console.write(text);
     }
     
 }

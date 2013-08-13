@@ -1,18 +1,16 @@
 package net.kucoe.elvn.sync;
 
-import static net.kucoe.elvn.ListColor.*;
-
 import java.io.*;
 import java.net.*;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.security.KeyStore;
-import java.util.*;
-import java.util.List;
+import java.security.MessageDigest;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.*;
 
-import net.kucoe.elvn.*;
-import net.kucoe.elvn.sync.SyncEvent.EventType;
-import net.kucoe.elvn.util.*;
+import net.kucoe.elvn.util.Config;
 
 /**
  * Remote sync support
@@ -22,26 +20,20 @@ import net.kucoe.elvn.util.*;
 public class Sync {
     
     private static final String DEFAULT_SERVER_PATH = "https://kucoe.net/elvn/";
-    private static final long MONTH = 30 * 24 * 60 * 60 * 1000l;
     
     private final String email;
-    private final String password;
+    private final boolean noKey;
     private final String serverPath;
-    private final int ignoreLimit;
-    private final int interval;
     private final String basePath;
     private final Config config;
     
     private SyncStatusListener statusListener;
-    private String userId;
-    private boolean stop;
-    private boolean online;
-    private boolean remoteContent;
-    private Thread synchronizer;
-    private final Map<String, SyncEvent> events = new HashMap<String, SyncEvent>();
-    private long lastUpdate;
-    private boolean processing;
-    private boolean success;
+    private boolean auth;
+    private int tries;
+    
+    private static MessageDigest digester;
+    private static final char[] hexChars = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
+            'f' };
     
     static {
         try {
@@ -55,6 +47,7 @@ public class Sync {
             SSLContext sc = SSLContext.getInstance("TLS");
             sc.init(null, trustManagers, null);
             HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+            digester = MessageDigest.getInstance("SHA-512");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -64,23 +57,18 @@ public class Sync {
      * Constructs Sync.
      * 
      * @param email
-     * @param password
-     * @param ignoreLimit
-     * @param interval
+     * @param noKey
      * @param serverPath
      * @param basePath
      * @param config {@link Config}
      */
-    public Sync(final String email, final String password, final int ignoreLimit, final int interval,
-            final String serverPath, final String basePath, final Config config) {
+    public Sync(final String email, final boolean noKey, final String serverPath, final String basePath,
+            final Config config) {
         this.email = email;
-        this.password = password;
+        this.noKey = noKey;
         this.serverPath = serverPath == null ? DEFAULT_SERVER_PATH : serverPath;
-        this.ignoreLimit = ignoreLimit;
-        this.interval = interval;
         this.basePath = basePath;
         this.config = config;
-        online = true;
     }
     
     /**
@@ -93,418 +81,164 @@ public class Sync {
     }
     
     /**
-     * Changes service to online. Will not work if there is no connection.
-     */
-    public void online() {
-        online = true;
-    }
-    
-    /**
-     * Changes service to go offline.
-     **/
-    public void offline() {
-        online = false;
-    }
-    
-    /**
-     * Stop
-     */
-    public synchronized void stop() {
-        stop = true;
-        try {
-            List<SyncEvent> changes = calculateChanges(getClientEvents(), new ArrayList<SyncEvent>());
-            if (changes != null && !changes.isEmpty()) {
-                saveEvents(toRaw(changes));
-            }
-            saveLastUpdate();
-        } catch (IOException e) {
-            // ignore
-        }
-        synchronized (synchronizer) {
-            synchronizer.notifyAll();
-        }
-        synchronizer = null;
-    }
-    
-    /**
-     * Starts
-     */
-    public synchronized void start() {
-        if (synchronizer == null || stop) {
-            final int millis = interval * 60 * 1000;
-            synchronizer = new Thread() {
-                public void run() {
-                    while (!stop) {
-                        try {
-                            sync();
-                            synchronized (synchronizer) {
-                                synchronizer.wait(millis);
-                            }
-                        } catch (Exception e) {
-                            showSynchronizedFailedStatus(e.getMessage());
-                            processing = false;
-                        }
-                    }
-                }
-            };
-            stop = false;
-            synchronizer.start();
-        }
-    }
-    
-    /**
-     * Synchronizes elvn items. This will not start service, if not started.
+     * Reverts to the last version (before previous pull)
      * 
-     * @throws JsonException
      * @throws IOException
      */
-    public void sync() throws IOException, JsonException {
-        if (processing) {
-            return;
+    public void restore() throws IOException {
+        String path = basePath + "config.bak";
+        File file = new File(path);
+        if (file.exists()) {
+            config.saveConfig(read(file));
         }
-        processing = true;
+    }
+    
+    /**
+     * Gets remote content
+     * 
+     * @throws IOException
+     */
+    public synchronized void pull() throws IOException {
+        tries = 0;
+        backup();
+        auth();
         try {
-            checkUser();
+            String remote = call("pull");
+            if (remote.isEmpty()) {
+                push();
+            } else if ("false".equals(remote)) {
+                showAuthFailedStatus();
+                reauth();
+            } else {
+                config.saveConfig(remote);
+                showSynchronizedStatus();
+            }
         } catch (Exception e) {
             showSynchronizedFailedStatus(e.getMessage());
-            if (userId == null) {
-                processing = false;
-                return;
-            }
-            // maybe connection lost, continue
-        }
-        if (isError(userId)) {
-            userId = null;
-            showAuthFailedStatus();
-        } else {
-            checkConfig();
-            Map<String, SyncEvent> map = getClientEvents();
-            List<SyncEvent> list = new ArrayList<SyncEvent>();
-            try {
-                list = getServerUpdates();
-            } catch (Exception e) {
-                // maybe connection lost, continue
-            }
-            List<SyncEvent> updates = calculateUpdates(map, list);
-            if (!updates.isEmpty()) {
-                applyUpdates(updates);
-            }
-            List<SyncEvent> changes = calculateChanges(map, list);
-            syncEvents(changes);
-            showSynchronizedStatus();
-        }
-        processing = false;
-    }
-    
-    private void checkUser() throws Exception {
-        userId = ask("user");
-    }
-    
-    private void checkConfig() throws IOException, JsonException {
-        File file = new File(getUserPath());
-        if (!file.exists()) {
-            file.mkdir();
-            init(file);
         }
     }
     
-    private void init(final File userDir) throws IOException, JsonException {
-        ask("init", new InputListener() {
-            public boolean onNextLine(final String line) {
-                if (isError(line)) {
-                    return false;
-                }
-                if (!remoteContent) {
-                    remoteContent = true;
-                }
-                try {
-                    writeFile(line, userDir);
-                    return true;
-                } catch (IOException e) {
-                    return false;
-                }
-            }
-            
-            public String getInputString() {
-                return "";
-            }
-        });
-        if (!remoteContent) {
-            put();
-            init(userDir);
-        }
-        lastUpdate = new Date().getTime();
-        showInitializedStatus();
-    }
-    
-    private void put() throws IOException, JsonException {
-        List<SyncEvent> events = buildFromConfig();
-        syncEvents(events);
-    }
-    
-    private void syncEvents(final List<SyncEvent> events) throws IOException {
-        if (events.isEmpty()) {
-            return;
-        }
-        String raw = toRaw(events);
+    /**
+     * Pushes content to server.
+     * 
+     * @throws IOException
+     */
+    public synchronized void push() throws IOException {
+        tries = 0;
+        auth();
         try {
-            ask("put", "events", raw);
+            String remote = call("push", "config", config.getConfig());
+            if ("false".equals(remote)) {
+                showAuthFailedStatus();
+                reauth();
+            } else {
+                showSynchronizedStatus();
+            }
         } catch (Exception e) {
-            saveEvents(raw);
-            saveLastUpdate();
+            showSynchronizedFailedStatus(e.getMessage());
         }
     }
     
-    private Map<String, SyncEvent> getClientEvents() throws IOException {
-        if (events.isEmpty()) {
-            restoreSavedEvents();
-        }
-        return events;
-    }
-    
-    private void restoreSavedEvents() throws IOException {
-        String path = userId == null ? basePath + "events.log" : getUserPath() + "events.log";
-        File file = new File(path);
-        if (file.exists()) {
-            BufferedReader reader = new BufferedReader(new FileReader(file));
-            try {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    SyncEvent event = SyncEvent.fromRaw(line);
-                    if (event != null && event.getItemId() != null) {
-                        events.put(event.getItemId(), event);
-                    }
-                }
-            } finally {
-                reader.close();
-                file.delete();
+    private void auth() throws IOException {
+        if (!auth) {
+            auth = Boolean.parseBoolean(call("auth"));
+            if (!auth) {
+                showAuthFailedStatus();
+                reauth();
+            } else {
+                tries = 0;
             }
         }
     }
     
-    private void saveEvents(final String rawEvents) throws IOException {
-        if (rawEvents == null || rawEvents.isEmpty()) {
-            return;
-        }
-        String path = userId == null ? basePath + "events.log" : getUserPath() + "events.log";
+    private void backup() throws IOException {
+        String path = basePath + "config.bak";
         File file = new File(path);
         if (!file.exists()) {
             file.createNewFile();
         }
-        BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
-        try {
-            writer.write(rawEvents);
-        } finally {
-            writer.close();
+        write(file, config.getConfig());
+    }
+    
+    private boolean userExists() throws IOException {
+        return Boolean.parseBoolean(call("auth", "email", email));
+    }
+    
+    private String askForPassword() throws IOException {
+        if (userExists()) {
+            return statusListener.promptForPassword("Please enter your password:");
+        }
+        return statusListener.promptForPassword("Please choose password to register with:");
+    }
+    
+    private void sendKey(final String password, final String key) throws IOException {
+        String remote = call("auth", "email", email, "password", password, "key", key);
+        if (remote.equals("false")) {
+            showAuthFailedStatus();
+            reauth();
         }
     }
     
-    private List<SyncEvent> buildFromConfig() throws IOException, JsonException {
-        List<SyncEvent> events = new ArrayList<SyncEvent>();
-        List<Note> notes = config.getNotes();
-        for (Note note : notes) {
-            events.add(new SyncEvent(note, EventType.Create, null));
-        }
-        for (ListColor color : ListColor.values()) {
-            if (All.equals(color) || Today.equals(color)) {
-                continue;
-            }
-            net.kucoe.elvn.List list = config.getList(color);
-            if (list == null) {
-                continue;
-            }
-            if (!Done.equals(color)) {
-                events.add(new SyncEvent(list, EventType.Create, null));
-            }
-            for (Task task : list.getTasks()) {
-                events.add(new SyncEvent(task, EventType.Create, null));
-            }
-        }
-        events.add(new SyncEvent(new TimerInfo(null, null, 0), EventType.Create, null));
-        return events;
-    }
-    
-    private List<SyncEvent> getServerUpdates() throws IOException, JsonException {
-        long lastUpdate = getLastUpdate();
-        final List<SyncEvent> events = new ArrayList<SyncEvent>();
-        if ((new Date().getTime() - lastUpdate) > MONTH) {
-            init(new File(getUserPath()));
-            return events;
-        }
-        ask("get", new InputListener() {
-            
-            @Override
-            public boolean onNextLine(final String line) {
-                if (isError(line)) {
-                    return false;
-                }
-                events.add(SyncEvent.fromRaw(line));
-                return true;
-            }
-            
-            @Override
-            public String getInputString() {
-                return "";
-            }
-        }, "after", String.valueOf(lastUpdate));
-        this.lastUpdate = new Date().getTime();
-        return events;
-    }
-    
-    private long getLastUpdate() throws IOException {
-        if (lastUpdate > 0) {
-            return lastUpdate;
-        }
-        String path = userId == null ? basePath + "sync.log" : getUserPath() + "sync.log";
+    private void reauth() throws IOException {
+        tries++;
+        auth = false;
+        String path = basePath + "sync.key";
         File file = new File(path);
         if (file.exists()) {
-            BufferedReader reader = new BufferedReader(new FileReader(file));
-            try {
-                String line = reader.readLine();
-                if (line != null) {
-                    return Long.valueOf(line);
-                }
-            } finally {
-                reader.close();
-            }
+            file.delete();
         }
-        return new Date().getTime();
+        if (tries <= 10) {
+            auth();
+        }
     }
     
-    private void saveLastUpdate() throws IOException {
-        if (lastUpdate == 0) {
-            return;
-        }
-        String path = userId == null ? basePath + "sync.log" : getUserPath() + "sync.log";
+    private String key() throws IOException {
+        String path = basePath + "sync.key";
         File file = new File(path);
         if (!file.exists()) {
+            String password = askForPassword();
+            String key = newKey(password);
             file.createNewFile();
+            write(file, key);
+            key = getKey(key, getCreationTime(file));
+            sendKey(password, key);
+            return key;
         }
-        BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-        try {
-            writer.write(String.valueOf(lastUpdate));
-        } finally {
-            writer.close();
-        }
+        String content = read(file);
+        return getKey(content, getCreationTime(file));
     }
     
-    private List<SyncEvent> calculateUpdates(final Map<String, SyncEvent> clientMap, final List<SyncEvent> serverList) {
-        List<SyncEvent> updates = new ArrayList<SyncEvent>();
-        for (SyncEvent event : serverList) {
-            SyncEvent change = clientMap.get(event.getItemId());
-            if (event.after(change)) {
-                updates.add(event);
-            }
-        }
-        return updates;
+    private String getKey(final String key, final long time) throws UnsupportedEncodingException {
+        String str = key.substring(0, 64) + time + key.substring(64);
+        digester.reset();
+        byte[] digest = digester.digest(str.getBytes("UTF-8"));
+        return toHex(digest);
     }
     
-    private void applyUpdates(final List<SyncEvent> updates) throws IOException, JsonException {
-        File userDir = new File(getUserPath());
-        for (SyncEvent event : updates) {
-            String fileName = event.getItemId();
-            if (fileName != null) {
-                File file = new File(userDir, fileName);
-                String body = null;
-                if (!file.exists()) {
-                    file.createNewFile();
-                } else {
-                    body = getFileBody(file);
-                }
-                body = event.apply(body);
-                if (body != null) {
-                    FileWriter writer = new FileWriter(file);
-                    writer.write(body);
-                    writer.flush();
-                    writer.close();
-                } else {
-                    file.delete();
-                }
-            }
-        }
-        updateConfig();
+    private String newKey(final String password) throws UnsupportedEncodingException {
+        digester.reset();
+        byte[] digest = digester.digest(password.getBytes("UTF-8"));
+        return toHex(digest);
     }
     
-    protected String getFileBody(final File file) throws IOException {
-        String result = null;
-        BufferedReader reader = new BufferedReader(new FileReader(file));
-        try {
-            result = reader.readLine();
-        } finally {
-            reader.close();
-        }
-        return result;
+    private long getCreationTime(final File file) throws IOException {
+        BasicFileAttributes attrs = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+        return attrs.creationTime().to(TimeUnit.MILLISECONDS);
     }
     
-    private void updateConfig() throws IOException, JsonException {
-        List<Map<String, Object>> listsPart = new LinkedList<Map<String, Object>>();
-        List<Map<String, Object>> tasksPart = new LinkedList<Map<String, Object>>();
-        List<Map<String, Object>> notesPart = new LinkedList<Map<String, Object>>();
-        File[] files = new File(getUserPath()).listFiles();
-        for (File file : files) {
-            String line = getFileBody(file);
-            ItemParser parser = new ItemParser(line);
-            Object item = parser.getItem();
-            if (item instanceof net.kucoe.elvn.List) {
-                Map<String, Object> map = new LinkedHashMap<String, Object>();
-                map.put("label", ((net.kucoe.elvn.List) item).getLabel());
-                map.put("color", ((net.kucoe.elvn.List) item).getColor());
-                listsPart.add(map);
-            } else if (item instanceof Task) {
-                Map<String, Object> map = new LinkedHashMap<String, Object>();
-                map.put("id", ((Task) item).getId());
-                map.put("list", ((Task) item).getList());
-                map.put("text", ((Task) item).getText());
-                map.put("planned", ((Task) item).isPlanned());
-                map.put("completedOn", ((Task) item).getCompletedOn());
-                tasksPart.add(map);
-            } else if (item instanceof Note) {
-                Map<String, Object> map = new LinkedHashMap<String, Object>();
-                map.put("id", ((Note) item).getId());
-                map.put("text", ((Note) item).getText());
-                notesPart.add(map);
-            }
+    private static String toHex(final byte[] bytes) {
+        StringBuilder result = new StringBuilder(1024);
+        for (byte b : bytes) {
+            int lowBits = b & 0x0f;
+            int highBits = (b >> 4) & 0x0f;
+            result.append(hexChars[highBits]);
+            result.append(hexChars[lowBits]);
         }
-        Map<String, Object> main = new LinkedHashMap<String, Object>();
-        main.put("lists", listsPart);
-        main.put("tasks", tasksPart);
-        main.put("notes", notesPart);
-        String json = new Jsonizer().write(main);
-        json = json.replace("},", "},\n");
-        json = json.replace("],", "],\n");
-        config.saveConfig(json);
+        return result.toString();
     }
     
-    protected String getUserPath() {
-        return basePath + userId + "/";
-    }
-    
-    private List<SyncEvent> calculateChanges(final Map<String, SyncEvent> clientMap, final List<SyncEvent> serverList) {
-        List<SyncEvent> changes = new ArrayList<SyncEvent>(clientMap.values());
-        for (SyncEvent update : serverList) {
-            String itemId = update.getItemId();
-            SyncEvent change = clientMap.get(itemId);
-            if (change != null && !change.after(update)) {
-                changes.remove(change);
-            }
-        }
-        for (SyncEvent event : clientMap.values()) {
-            if (event.stale(ignoreLimit)) {
-                changes.remove(event);
-            }
-        }
-        return changes;
-    }
-    
-    private String ask(final String what, final String... params) throws IOException {
-        return ask(what, null, params);
-    }
-    
-    private String ask(final String what, final InputListener listener, final String... params) throws IOException {
-        if (!online) {
-            throw new IOException("Offline");
-        }
-        URL url = new URL(serverPath + what);
+    private String call(final String method, final String... params) throws IOException {
+        URL url = new URL(serverPath + method);
         String body = params(params);
         
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -526,70 +260,19 @@ public class Sync {
             throw new IOException(urlConnection.getResponseMessage());
         }
         BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-        InputListener l = listener;
-        if (l == null) {
-            l = getDefaultListener();
-        }
+        final StringBuilder sb = new StringBuilder();
         try {
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                if (!l.onNextLine(inputLine)) {
-                    break;
-                }
+            String line;
+            while ((line = in.readLine()) != null) {
+                sb.append(line);
             }
         } finally {
             in.close();
         }
-        return l.getInputString();
-    }
-    
-    private String toRaw(final List<SyncEvent> events) {
-        StringBuilder sb = new StringBuilder();
-        int i = 0;
-        for (SyncEvent event : events) {
-            if (i > 0) {
-                sb.append('\n');
-            }
-            sb.append(event.toString());
-            i++;
-        }
         return sb.toString();
     }
     
-    protected void writeFile(final String input, final File userDir) throws IOException {
-        ItemParser parser = new ItemParser(input);
-        String fileName = parser.getFileName();
-        if (fileName != null) {
-            File file = new File(userDir, fileName);
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-            String body = parser.getFileBody();
-            if (body != null) {
-                FileWriter writer = new FileWriter(file);
-                writer.write(body);
-                writer.flush();
-                writer.close();
-            }
-        }
-    }
-    
-    private InputListener getDefaultListener() {
-        return new InputListener() {
-            private final StringBuilder sb = new StringBuilder();
-            
-            public boolean onNextLine(final String line) {
-                sb.append(line);
-                return true;
-            }
-            
-            public String getInputString() {
-                return sb.toString();
-            }
-        };
-    }
-    
-    private String params(final String... params) {
+    private String params(final String... params) throws IOException {
         if (params == null) {
             return null;
         }
@@ -597,11 +280,18 @@ public class Sync {
         if (size <= 0) {
             return authParams();
         }
-        return authParams() + '&' + buildParams(params);
+        String built = buildParams(params);
+        if (built.contains("key=") || built.contains("email=")) {
+            return built;
+        }
+        return authParams() + '&' + built;
     }
     
-    private String authParams() {
-        return buildParams("email", email, "password", password);
+    private String authParams() throws IOException {
+        if (noKey) {
+            return buildParams("email", email, "password", askForPassword());
+        }
+        return buildParams("email", email, "key", key());
     }
     
     private String buildParams(final String... params) {
@@ -644,34 +334,52 @@ public class Sync {
         }
     }
     
-    protected boolean isError(final String input) {
-        return "-1".equals(input);
+    private String read(final File file) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(file));
+        String str;
+        StringBuilder sb = new StringBuilder();
+        String newLine = "";
+        while ((str = reader.readLine()) != null) {
+            sb.append(newLine);
+            sb.append(str);
+            newLine = "\n";
+        }
+        reader.close();
+        return sb.toString();
+    }
+    
+    private void write(final File file, final String content) throws IOException {
+        FileWriter writer = new FileWriter(file);
+        writer.write(content);
+        writer.flush();
+        writer.close();
     }
     
     private void showAuthFailedStatus() {
         if (statusListener != null) {
-            statusListener.onStatusChange("Sync is offline: Authorization failed for " + email);
-        }
-    }
-    
-    private void showInitializedStatus() {
-        if (statusListener != null) {
-            statusListener.onStatusChange("Sync is online: Initialized sucessfully into " + userId);
+            statusListener.onStatusChange("Authorization failed for " + email);
         }
     }
     
     private void showSynchronizedStatus() {
-        if (statusListener != null && !success) {
-            statusListener.onStatusChange("Sync is online: Synchronized sucessfully as " + email);
+        if (statusListener != null) {
+            statusListener.onStatusChange("Synchronized sucessfully as " + email);
         }
-        success = true;
     }
     
     private void showSynchronizedFailedStatus(final String message) {
-        success = false;
         if (statusListener != null) {
-            statusListener.onStatusChange("Sync is online: Synchronization failed, cause:" + message);
+            statusListener.onStatusChange("Synchronization failed, cause:" + message);
         }
+    }
+    
+    /**
+     * Whether auth was successful.
+     * 
+     * @return boolean
+     */
+    public boolean isAuthSucceed() {
+        return auth;
     }
     
 }

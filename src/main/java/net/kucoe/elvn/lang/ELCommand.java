@@ -48,6 +48,8 @@ public enum ELCommand {
                 result = new GroupTaskCommand(processing, ((TaskGroup) result).positions);
             } else if (result instanceof EditTask) {
                 result = doEditTask(result, list, text);
+            } else if (result instanceof SwitchSync) {
+                result = new SyncCommand(processing);
             } else if (result instanceof SwitchTimer) {
                 result = new TimerCommand(processing);
             } else if (result instanceof Switch) {
@@ -254,9 +256,9 @@ public enum ELCommand {
     Sync("%") {
         @Override
         protected ELCommand doNext() {
-            if (processing.isEmpty()) {
+            if (processing.isEmpty() || processing.length() == 1) {
                 result = new SwitchSync();
-                return super.doNext();
+                return processing.isEmpty() ? super.doNext() : String;
             }
             processing = el + processing;
             return String;
@@ -271,7 +273,7 @@ public enum ELCommand {
         protected ELCommand doNext() {
             if (processing.isEmpty() || processing.length() == 1) {
                 result = new SwitchTimer();
-                return String;
+                return processing.isEmpty() ? super.doNext() : String;
             }
             processing = el + processing;
             return String;

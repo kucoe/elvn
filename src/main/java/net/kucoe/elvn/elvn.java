@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 
 import jline.*;
-import jline.History;
 import net.kucoe.elvn.lang.EL;
 import net.kucoe.elvn.lang.result.ELResult;
 import net.kucoe.elvn.lang.result.SwitchListColor;
@@ -27,18 +26,18 @@ public class elvn {
      * @throws Exception
      */
     public static void main(final String[] args) throws Exception {
-        ConsoleReader reader = new ConsoleReader();
+        Console console = new Console();
+        ConsoleReader reader = console.getReader();
         reader.addCompletor(createCompletor());
-        reader.setDefaultPrompt("elvn>");
         Config config = new Config();
         Sync sync = config.getSync();
         if (sync != null) {
-            sync.start();
-            sync.setStatusListener(new ConsoleSyncStatus());
+            sync.setStatusListener(new ConsoleSyncStatus(console));
+            sync.pull();
         }
         reader.setHistory(createHistory(config));
-        Display display = new ConsoleDisplay();
-        final ConsoleTimerView timerView = new ConsoleTimerView();
+        Display display = new ConsoleDisplay(console);
+        final ConsoleTimerView timerView = new ConsoleTimerView(console);
         Timer.setTimerView(timerView);
         Timer.setProcess(new ThreadProcess());
         try {
@@ -50,7 +49,7 @@ public class elvn {
             String current = result.execute(display, config);
             display.setCurrentList(current);
             String line;
-            while ((line = reader.readLine()) != null) {
+            while ((line = console.readLine()) != null) {
                 if (line.equalsIgnoreCase("\\q") || line.equalsIgnoreCase("exit")) {
                     break;
                 }
@@ -69,7 +68,7 @@ public class elvn {
             Timer.shutdown();
             timerView.onExit();
             if (sync != null) {
-                sync.stop();
+                sync.push();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -90,7 +89,6 @@ public class elvn {
     
     private static History createHistory(final Config config) throws IOException {
         String historyFile = config.getHistoryFile();
-        historyFile = historyFile.substring(0, historyFile.lastIndexOf('.'));
         File file = new File(historyFile);
         if (!file.exists()) {
             file.createNewFile();

@@ -296,28 +296,11 @@ public class Config {
     public String getHistoryFile() throws IOException {
         InputStream resource = getStream(getHistoryPath());
         if (resource == null) {
-            InputStream mainResource = getClass().getResourceAsStream("/net/kucoe/elvn/data/history.json");
+            InputStream mainResource = getClass().getResourceAsStream("/net/kucoe/elvn/data/history");
             String st = read(mainResource);
             saveToFile(st, getHistoryPath());
         }
         return getHistoryPath();
-    }
-    
-    /**
-     * Reads history from file.
-     * 
-     * @return string
-     * @throws IOException
-     */
-    public String getHistory() throws IOException {
-        InputStream resource = getStream(getHistoryPath());
-        if (resource == null) {
-            InputStream mainResource = getClass().getResourceAsStream("/net/kucoe/elvn/data/history.json");
-            String st = read(mainResource);
-            saveHistory(st);
-            return st;
-        }
-        return read(resource);
     }
     
     /**
@@ -362,16 +345,6 @@ public class Config {
     }
     
     /**
-     * Save history to file.
-     * 
-     * @param string
-     * @throws IOException
-     */
-    public void saveHistory(final String string) throws IOException {
-        saveToFile(string, getHistoryPath());
-    }
-    
-    /**
      * Saves and reloads config
      * 
      * @throws JsonException
@@ -411,22 +384,17 @@ public class Config {
      * 
      * @return {@link Sync}
      * @throws IOException
-     * @throws JsonException
      */
-    public Sync getSync() throws IOException, JsonException {
+    public Sync getSync() throws IOException {
         if (sync == null) {
             String string = getSyncConfig();
+            Properties prop = new Properties();
             if (string != null) {
-                Jsonizer jsonizer = new Jsonizer();
-                Map<String, Object> map = jsonizer.read(string);
-                String email = (String) map.get("email");
-                String password = (String) map.get("password");
-                Long ignore = (Long) map.get("ignore");
-                Long interval = (Long) map.get("interval");
-                String server = (String) map.get("server");
-                int ignoreLimit = ignore == null ? 30 : ignore.intValue();
-                int inter = interval == null ? 1 : interval.intValue();
-                sync = new Sync(email, password, ignoreLimit, inter, server, getBasePath(), this);
+                prop.load(new ByteArrayInputStream(string.getBytes("UTF-8")));
+                String email = prop.getProperty("email");
+                String server = prop.getProperty("server");
+                boolean noKey = Boolean.parseBoolean(prop.getProperty("nokey"));
+                sync = new Sync(email, noKey, server, getBasePath(), this);
             }
         }
         return sync;
@@ -558,6 +526,9 @@ public class Config {
         json = json.replace("},", "},\n");
         json = json.replace("],", "],\n");
         saveConfig(json);
+        if (sync != null) {
+            sync.push();
+        }
         lists = new HashMap<ListColor, List>();
         notes = new ArrayList<Note>();
     }
@@ -602,12 +573,12 @@ public class Config {
     
     protected String getSyncConfigPath() {
         checkElvnDir();
-        return getBasePath() + "sync.json";
+        return getBasePath() + "sync.ini";
     }
     
     protected String getHistoryPath() {
         checkElvnDir();
-        return getBasePath() + "history.json";
+        return getBasePath() + "history";
     }
     
     protected void checkElvnDir() {

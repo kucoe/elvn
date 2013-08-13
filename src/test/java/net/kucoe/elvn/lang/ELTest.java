@@ -38,12 +38,21 @@ public class ELTest {
     public void testSwitchSync() {
         ELResult process = EL.process("%");
         assertTrue("Result type is wrong", process instanceof SwitchSync);
+        assertFalse("Result type is wrong", process instanceof SyncCommand);
+    }
+    
+    @Test
+    public void testSwitchSyncCommand() {
+        ELResult process = EL.process("%<");
+        assertTrue("Result type is wrong", process instanceof SyncCommand);
+        assertEquals("<", ((SyncCommand) process).command);
     }
     
     @Test
     public void testSwitchTimer() {
         ELResult process = EL.process("$");
         assertTrue("Result type is wrong", process instanceof SwitchTimer);
+        assertFalse("Result type is wrong", process instanceof TimerCommand);
     }
     
     @Test
@@ -61,9 +70,9 @@ public class ELTest {
     
     @Test
     public void testSwitchWrongSync() {
-        ELResult process = EL.process("%s");
+        ELResult process = EL.process("%sa");
         assertTrue("Result type is wrong", process instanceof TaskResult);
-        assertEquals("%s", ((TaskResult) process).text);
+        assertEquals("%sa", ((TaskResult) process).text);
     }
     
     @Test

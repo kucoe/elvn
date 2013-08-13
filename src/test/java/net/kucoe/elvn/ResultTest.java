@@ -308,6 +308,13 @@ public class ResultTest extends AbstractConfigTest {
     }
     
     @Test
+    public void testSyncHelp() throws Exception {
+        SyncCommand command = new SyncCommand("s");
+        command.execute(display, config);
+        assertNotNull(display.helpMessage);
+    }
+    
+    @Test
     public void testTimerHelp() throws Exception {
         TimerCommand command = new TimerCommand("s");
         command.execute(display, config);

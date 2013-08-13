@@ -13,9 +13,15 @@ import org.junit.Before;
 public abstract class AbstractConfigTest {
     
     class ConfigMock extends Config {
-        public String getConfigPath() {
+        
+        protected String getBasePath() {
+            return getUserDir() + "/.elvn-test/";
+        }
+        
+        @Override
+        protected String getConfigPath() {
             checkElvnDir();
-            return getUserDir() + "/.elvn/test.json";
+            return getBasePath() + "test.json";
         }
         
         @Override
@@ -139,6 +145,8 @@ public abstract class AbstractConfigTest {
     @Before
     public void setUp() {
         config = new ConfigMock();
+        File dir = new File(config.getBasePath());
+        del(dir);
         display = new DisplayMock();
         Timer.setProcess(getTimerProcess());
         timerView = new TimerViewMock();
@@ -148,14 +156,17 @@ public abstract class AbstractConfigTest {
     
     @After
     public void tearDown() {
-        delete();
+        File dir = new File(config.getBasePath());
+        del(dir);
     }
     
-    protected void delete() {
-        File file = new File(config.getConfigPath());
-        if (file.exists()) {
-            file.delete();
+    private void del(final File file) {
+        if (file.isDirectory()) {
+            for (File c : file.listFiles()) {
+                del(c);
+            }
         }
+        file.delete();
     }
     
     protected TimerProcess getTimerProcess() {

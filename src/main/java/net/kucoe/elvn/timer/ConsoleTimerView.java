@@ -10,6 +10,7 @@ import javax.imageio.ImageIO;
 import javax.script.*;
 
 import net.kucoe.elvn.Task;
+import net.kucoe.elvn.util.Console;
 
 /**
  * {@link TimerView} implementation.
@@ -24,6 +25,17 @@ public class ConsoleTimerView implements TimerView {
     private boolean silent;
     private TrayIcon icon;
     private static String OS = System.getProperty("os.name").toLowerCase();
+    
+    private final Console console;
+    
+    /**
+     * Constructs ConsoleTimerView.
+     * 
+     * @param console
+     */
+    public ConsoleTimerView(final Console console) {
+        this.console = console;
+    }
     
     /**
      * Clean up
@@ -47,10 +59,9 @@ public class ConsoleTimerView implements TimerView {
             lastSeconds = seconds;
         }
         if (lastTask == null) {
-            System.out.println("No running tasks");
+            console.write("No running tasks");
         } else {
-            System.out.println(lastStage.toString() + ":" + lastTask.getText()
-                    + " - " + formatSecs(lastSeconds));
+            console.write(lastStage.toString() + ":" + lastTask.getText() + " - " + formatSecs(lastSeconds));
         }
     }
     
@@ -107,18 +118,15 @@ public class ConsoleTimerView implements TimerView {
     @Override
     public void silent() {
         silent = !silent;
-        System.out.println("Silent mode "
-                + (silent ? "activated" : "deactivated"));
+        console.write("Silent mode " + (silent ? "activated" : "deactivated"));
     }
     
     // https://github.com/alloy/terminal-notifier/downloads
     private boolean hasNotifier() {
         try {
             ProcessBuilder pb =
-                    new ProcessBuilder(
-                            "/Applications/terminal-notifier.app/Contents/MacOS/terminal-notifier",
-                            "-message", "The stage " + lastStage.toString()
-                                    + " finished.", "-title", "Elvn",
+                    new ProcessBuilder("/Applications/terminal-notifier.app/Contents/MacOS/terminal-notifier",
+                            "-message", "The stage " + lastStage.toString() + " finished.", "-title", "Elvn",
                             "-activate", "com.apple.Terminal");
             pb.start();
             return true;
@@ -141,9 +149,7 @@ public class ConsoleTimerView implements TimerView {
         if (SystemTray.isSupported()) {
             final SystemTray tray = SystemTray.getSystemTray();
             try {
-                Image image =
-                        ImageIO.read(getClass().getResourceAsStream(
-                                "/net/kucoe/elvn/resources/icons/timer.png"));
+                Image image = ImageIO.read(getClass().getResourceAsStream("/net/kucoe/elvn/resources/icons/timer.png"));
                 if (icon != null) {
                     tray.remove(icon);
                 }
@@ -151,33 +157,32 @@ public class ConsoleTimerView implements TimerView {
                 icon.setImageAutoSize(true);
                 icon.addMouseListener(new MouseListener() {
                     @Override
-                    public void mouseReleased(MouseEvent e) {
+                    public void mouseReleased(final MouseEvent e) {
                         // empty
                     }
                     
                     @Override
-                    public void mousePressed(MouseEvent e) {
+                    public void mousePressed(final MouseEvent e) {
                         // empty
                     }
                     
                     @Override
-                    public void mouseExited(MouseEvent e) {
+                    public void mouseExited(final MouseEvent e) {
                         // empty
                     }
                     
                     @Override
-                    public void mouseEntered(MouseEvent e) {
+                    public void mouseEntered(final MouseEvent e) {
                         // empty
                     }
                     
                     @Override
-                    public void mouseClicked(MouseEvent e) {
+                    public void mouseClicked(final MouseEvent e) {
                         tray.remove(icon);
                     }
                 });
                 tray.add(icon);
-                icon.displayMessage("Elvn", "The stage " + lastStage.toString()
-                        + " finished.", MessageType.NONE);
+                icon.displayMessage("Elvn", "The stage " + lastStage.toString() + " finished.", MessageType.NONE);
             } catch (Exception e) {
                 e.printStackTrace();
                 System.err.println("Can't add to tray");
@@ -196,7 +201,6 @@ public class ConsoleTimerView implements TimerView {
     }
     
     private static boolean isUnix() {
-        return (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS
-                .indexOf("aix") > 0);
+        return (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0);
     }
 }
