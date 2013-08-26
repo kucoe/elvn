@@ -34,14 +34,14 @@
 
         <pre><code>$ java -jar elvn.jar</code></pre>
 
-        <p>later you can save this command into bash/cmd file and place to your environment to run it with simple "elvn"
+        <p>later you can save this command into bash/cmd file and place intto your environment to run it with simple "elvn"
             command
-            after running elvn wil show you a list of planned tasks and interactive command prompt
-            learn more about elvn ideology <a href="elvn.html">here</a></p>
+            after start, elvn will show you a list of planned tasks and interactive command prompt
+            learn more about elvn in theory <a href="elvn.html">here</a></p>
 
         <h3>Lists</h3>
 
-        <p>elvn provides user with opportunity to manage 7 projects organized in lists of tasks and 3 system lists</p>
+        <p>elvn provides opportunity to manage 7 projects organized in lists of tasks and 3 system lists</p>
 
         <div>
             system lists are:
@@ -51,7 +51,7 @@
                 <li> done - completed tasks</li>
             </ul>
 
-            project lists are indentified by color name and label if set
+            project's lists are indentified by color name and label, if assigned
             <ul>
                 <li> red  - not assigned</li>
                 <li> orange - not assigned</li>
@@ -62,9 +62,9 @@
                 <li> violet - not assigned</li>
             </ul>
 
-            by default only blue (Work) and green (Personal) lists are enabled
+            by default only blue (Work) and green (Personal) project lists are enabled
 
-            to list your projects use "&" command, after projects are listed you can edit them
+            to list your projects use '&' command, when projects are listed you can edit them
 
             <pre><code>elvn>&
                 Lists
@@ -78,7 +78,8 @@
             </code></pre>
 
             to enable project you need to assign label to project,
-            do this by entering project color (possibly in one character format) and label separated by colon, this also allows you to change project's label
+            do this by entering project color (one-character format is acceptable) and label separated by colon,
+            in this way you can change project's label
 
             <pre><code>elvn>p:tutorial
                 Lists
@@ -92,7 +93,7 @@
             </code></pre>
 
             to disable project you need to remove label from project,
-            do this by entering project color (possibly in one character format) and empty label separated by colon
+            do this by entering project color (one-character format is acceptable) and colon without label
 
             <pre><code>elvn>p:
                 Lists
@@ -105,7 +106,7 @@
                 violet:not assigned
             </code></pre>
 
-            you can switch between lists using /{c(olor)} or /{label} or /a(ll), /t(oday), /d(one) command
+            you can switch between lists using '/{c(olor)}' or '/{label}' or '/a(ll)', '/t(oday)', '/d(one)' commands
 
             <pre><code>elvn>/a
                 All
@@ -131,7 +132,7 @@
 
         <h3>Ideas</h3>
 
-        <p>elvn provides special list for ideas, which are not related to projects but just stored in one stack</p>
+        <p>elvn provides particular list for ideas, which are not related to projects but just stored in one stack</p>
 
         <pre><code>elvn>@
                 Ideas
