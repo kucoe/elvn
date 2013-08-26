@@ -62,27 +62,67 @@
                 <li> violet - not assigned</li>
             </ul>
 
-            by default only blue (work) and green (personal) lists are enabled
-            to enable list you need to assign label to list
+            by default only blue (Work) and green (Personal) lists are enabled
+
+            to list your projects use "&" command, after projects are listed you can edit them
+
+            <pre><code>elvn>&
+                Lists
+                red:NodeJS
+                orange:not assigned
+                yellow:elvn
+                green:not assigned
+                blue:my other project
+                pink:not assigned
+                violet:not assigned
+            </code></pre>
+
+            to enable project you need to assign label to project,
+            do this by entering project color (possibly in one character format) and label separated by colon, this also allows you to change project's label
+
+            <pre><code>elvn>p:tutorial
+                Lists
+                red:NodeJS
+                orange:not assigned
+                yellow:elvn
+                green:not assigned
+                blue:my other project
+                pink:tutorial
+                violet:not assigned
+            </code></pre>
+
+            to disable project you need to remove label from project,
+            do this by entering project color (possibly in one character format) and empty label separated by colon
+
+            <pre><code>elvn>p:
+                Lists
+                red:NodeJS
+                orange:not assigned
+                yellow:elvn
+                green:not assigned
+                blue:my other project
+                pink:not assigned
+                violet:not assigned
+            </code></pre>
 
             you can switch between lists using /{c(olor)} or /{label} or /a(ll), /t(oday), /d(one) command
 
             <pre><code>elvn>/a
-               all
-               1.blue:urgent work task
-               2.green:buy a book
-               3.green:learn elvn
+                All
+                1.blue:urgent work task
+                2.green:buy a book
+                3.green:learn elvn
             </code></pre>
 
             other examples
 
             <pre><code>elvn>/work
-                work
+                Work
                 1.urgent work task
             </code></pre>
 
             <pre><code>elvn>/g
-                personal
+                Personal
                 1.buy a book
                 2.learn elvn
             </code></pre>
@@ -94,9 +134,9 @@
         <p>elvn provides special list for ideas, which are not related to projects but just stored in one stack</p>
 
         <pre><code>elvn>@
-            ideas
-            1.good idea
-            2.better idea
+                Ideas
+                1.good idea
+                2.better idea
         </code></pre>
 
     </section>
