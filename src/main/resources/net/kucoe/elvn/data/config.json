@@ -1,6 +1,6 @@
 {"lists":
-	[{"label":"work", "color":"blue"},
-	 {"label":"personal", "color":"green"}],
+	[{"label":"Work", "color":"blue"},
+	 {"label":"Personal", "color":"green"}],
 	 "tasks":
 	 [{"list":"blue", "text":"Test task", "estimate":2, "actuals":1, "id":1362771947351},
 	  {"list":"green", "text":"Test task 2", "estimate":2, "actuals":1, "id":1362771947352},

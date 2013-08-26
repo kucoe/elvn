@@ -50,9 +50,9 @@ public class ConsoleDisplay implements Display {
             }
             List list = config.getList(color);
             if (list == null) {
-                showBodyText(color + ":" + List.NOT_ASSIGNED);
+                showBodyText("\t" + color + ":" + List.NOT_ASSIGNED);
             } else {
-                showBodyText(color + ":" + list.getLabel());
+                showBodyText("\t" + color + ":" + list.getLabel());
             }
         }
     }
