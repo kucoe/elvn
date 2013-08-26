@@ -54,9 +54,9 @@ public class TaskCommand extends LocateTask {
         Del("x"),
         
         /**
-         * Undone command
+         * Idea command
          */
-        Note("@");
+        Idea("@");
         
         private String alias;
         
@@ -120,18 +120,18 @@ public class TaskCommand extends LocateTask {
     @Override
     public String execute(final Display display, final Config config) throws Exception {
         String currentList = display.getCurrentList();
-        if (ELCommand.Notes.el().equals(currentList)) {
-            Note note = getNote(config);
-            if (note != null) {
+        if (ELCommand.Ideas.el().equals(currentList)) {
+            Idea idea = getIdea(config);
+            if (idea != null) {
                 if (Del.alias().equals(command)) {
-                    config.removeNote(note);
+                    config.removeIdea(idea);
                 } else {
-                    config.removeNote(note);
-                    config.saveTask(new Task(note.getId(), command, note.getText(), false, null));
+                    config.removeIdea(idea);
+                    config.saveTask(new Task(idea.getId(), command, idea.getText(), false, null));
                     return forward(new SwitchListColor(ListColor.All.toString()), display, config);
                 }
             }
-            return forward(new SwitchNotes(), display, config);
+            return forward(new SwitchIdeas(), display, config);
         }
         Command c = Command.command(command);
         if (c == null) {
@@ -155,10 +155,10 @@ public class TaskCommand extends LocateTask {
                 } else if (Undone.equals(c)) {
                     config.removeTask(task);
                     config.saveTask(new Task(task.getId(), task.getList(), task.getText(), task.isPlanned(), null));
-                } else if (Note.equals(c)) {
+                } else if (Idea.equals(c)) {
                     config.removeTask(task);
-                    config.saveNote(new Note(task.getId(), task.getText()));
-                    return forward(new SwitchNotes(), display, config);
+                    config.saveIdea(new Idea(task.getId(), task.getText()));
+                    return forward(new SwitchIdeas(), display, config);
                 }
             }
             if (reshow) {
@@ -171,7 +171,7 @@ public class TaskCommand extends LocateTask {
     protected static String getHelpMessage(String command) {
         String helpMessage =
                 "\tWrong task command: " + command + "\n" + "\tAvailable commands:\n" + "\t> run task\n"
-                        + "\t@ convert task to note\n" + "\t+ make task planned\n" + "\t- make task not planned\n"
+                        + "\t@ convert task to idea\n" + "\t+ make task planned\n" + "\t- make task not planned\n"
                         + "\tv make task completed\n" + "\t^ make task not completed\n" + "\tx delete task";
         return helpMessage;
     }

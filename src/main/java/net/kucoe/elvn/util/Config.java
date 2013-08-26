@@ -20,7 +20,7 @@ import net.kucoe.elvn.timer.Timer;
 public class Config {
     
     private Map<ListColor, List> lists = new HashMap<ListColor, List>();
-    private java.util.List<Note> notes = new ArrayList<Note>();
+    private java.util.List<Idea> ideas = new ArrayList<Idea>();
     private Date todayStart;
     private long lastModified;
     private StatusUpdateListener listener;
@@ -36,15 +36,15 @@ public class Config {
     }
     
     /**
-     * Returns notes
+     * Returns ideas
      * 
      * @return {@link List}
      * @throws IOException
      * @throws JsonException
      */
-    public java.util.List<Note> getNotes() throws IOException, JsonException {
+    public java.util.List<Idea> getIdeas() throws IOException, JsonException {
         maybeInit();
-        return notes;
+        return ideas;
     }
     
     /**
@@ -147,33 +147,33 @@ public class Config {
     }
     
     /**
-     * Deletes note.
+     * Deletes idea.
      * 
-     * @param note
+     * @param idea
      * @throws JsonException
      * @throws IOException
      */
-    public void removeNote(final Note note) throws IOException, JsonException {
+    public void removeIdea(final Idea idea) throws IOException, JsonException {
         maybeInit();
-        notes.remove(note);
+        ideas.remove(idea);
         commit();
     }
     
     /**
-     * Saves or updates note.
+     * Saves or updates idea.
      * 
-     * @param note
+     * @param idea
      * @throws JsonException
      * @throws IOException
      */
-    public void saveNote(final Note note) throws IOException, JsonException {
+    public void saveIdea(final Idea idea) throws IOException, JsonException {
         maybeInit();
-        int idx = notes.indexOf(note);
+        int idx = ideas.indexOf(idea);
         if (idx > -1) {
-            notes.remove(idx);
-            notes.add(idx, note);
+            ideas.remove(idx);
+            ideas.add(idx, idea);
         } else {
-            notes.add(note);
+            ideas.add(idea);
         }
         commit();
     }
@@ -207,21 +207,21 @@ public class Config {
     }
     
     /**
-     * Search for task or note by id.
+     * Search for task or idea by id.
      * 
      * @param id
-     * @return found task or note
+     * @return found task or idea
      * @throws JsonException
      * @throws IOException
      */
-    public Note getById(final Long id) throws IOException, JsonException {
+    public Idea getById(final Long id) throws IOException, JsonException {
         if (id == null) {
             return null;
         }
         maybeInit();
-        for (Note note : getNotes()) {
-            if (note.getId().equals(id)) {
-                return note;
+        for (Idea idea : getIdeas()) {
+            if (idea.getId().equals(id)) {
+                return idea;
             }
         }
         for (Task task : getList(ListColor.All).getTasks()) {
@@ -238,21 +238,21 @@ public class Config {
     }
     
     /**
-     * Search for notes containing text.
+     * Search for ideas containing text.
      * 
      * @param query
-     * @return list of found notes
+     * @return list of found ideas
      * @throws JsonException
      * @throws IOException
      */
-    public java.util.List<Note> findNotes(final String query) throws IOException, JsonException {
+    public java.util.List<Idea> findIdeas(final String query) throws IOException, JsonException {
         maybeInit();
-        java.util.List<Note> result = new ArrayList<Note>();
+        java.util.List<Idea> result = new ArrayList<Idea>();
         if (query == null) {
             return result;
         }
-        for (Note note : getNotes()) {
-            filter(query, note, result);
+        for (Idea idea : getIdeas()) {
+            filter(query, idea, result);
         }
         return result;
     }
@@ -280,10 +280,10 @@ public class Config {
         return result;
     }
     
-    private <T extends Note> void filter(final String query, final T note, final java.util.List<T> result) {
-        String text = note.getText();
+    private <T extends Idea> void filter(final String query, final T idea, final java.util.List<T> result) {
+        String text = idea.getText();
         if (text != null && text.toLowerCase().contains(query.toLowerCase())) {
-            result.add(note);
+            result.add(idea);
         }
     }
     
@@ -451,14 +451,14 @@ public class Config {
                     lists.get(Done).getTasks().add(task);
                 }
             }
-            notes = new ArrayList<Note>();
-            java.util.List<Map<String, Object>> notesPart = (java.util.List<Map<String, Object>>) map.get("notes");
-            for (Map<String, Object> notePart : notesPart) {
-                String text = (String) notePart.get("text");
-                Long id = (Long) notePart.get("id");
+            ideas = new ArrayList<Idea>();
+            java.util.List<Map<String, Object>> ideasPart = (java.util.List<Map<String, Object>>) map.get("ideas");
+            for (Map<String, Object> ideaPart : ideasPart) {
+                String text = (String) ideaPart.get("text");
+                Long id = (Long) ideaPart.get("id");
                 long i = id == null ? 1 : id.longValue();
-                Note note = new Note(i, text);
-                notes.add(note);
+                Idea idea = new Idea(i, text);
+                ideas.add(idea);
             }
         }
     }
@@ -511,17 +511,17 @@ public class Config {
                 tasksPart.add(map);
             }
         }
-        java.util.List<Map<String, Object>> notesPart = new LinkedList<Map<String, Object>>();
-        for (Note note : notes) {
+        java.util.List<Map<String, Object>> ideasPart = new LinkedList<Map<String, Object>>();
+        for (Idea idea : ideas) {
             Map<String, Object> map = new LinkedHashMap<String, Object>();
-            map.put("id", note.getId());
-            map.put("text", note.getText());
-            notesPart.add(map);
+            map.put("id", idea.getId());
+            map.put("text", idea.getText());
+            ideasPart.add(map);
         }
         Map<String, Object> main = new LinkedHashMap<String, Object>();
         main.put("lists", listsPart);
         main.put("tasks", tasksPart);
-        main.put("notes", notesPart);
+        main.put("ideas", ideasPart);
         String json = new Jsonizer().write(main);
         json = json.replace("},", "},\n");
         json = json.replace("],", "],\n");
@@ -530,7 +530,7 @@ public class Config {
             sync.push();
         }
         lists = new HashMap<ListColor, List>();
-        notes = new ArrayList<Note>();
+        ideas = new ArrayList<Idea>();
     }
     
     protected InputStream getStream(final String path) throws IOException {

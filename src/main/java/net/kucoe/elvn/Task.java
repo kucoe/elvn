@@ -7,7 +7,7 @@ import java.util.Date;
  * 
  * @author Vitaliy Basyuk
  */
-public class Task extends Note {
+public class Task extends Idea {
     
     private final Date completedOn;
     private final ListColor list;
@@ -57,7 +57,7 @@ public class Task extends Note {
     }
     
     @Override
-    public int compareTo(final Note o) {
+    public int compareTo(final Idea o) {
         if (!(o instanceof Task)) {
             throw new IllegalArgumentException("Not a task");
         }

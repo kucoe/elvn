@@ -11,13 +11,13 @@ import net.kucoe.elvn.lang.result.ELResult;
  * /all - all tasks<br/>
  * /done - completed tasks<br/>
  * /& - switches to lists edit<br/>
- * /@ - switches to notes<br/>
+ * /@ - switches to ideas<br/>
  * /% - switches to sync menu (sync)<br/>
  * <br/>
- * vars - $task, $note, $list<br/>
+ * vars - $task, $idea, $list<br/>
  * <br/>
  * proto list {color:white, label:default, taskProto:$task}<br/>
- * proto note {text:}<br/>
+ * proto idea {text:}<br/>
  * proto task {list:white, text:, estimate:1,actuals:0,position:1,completedOn:}<br/>
  * <br/>
  * ? - get tasks by text contains<br/>

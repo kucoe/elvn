@@ -29,9 +29,9 @@ public class ELTest {
     }
     
     @Test
-    public void testSwitchNotes() {
+    public void testSwitchIdeas() {
         ELResult process = EL.process("@");
-        assertTrue("Result type is wrong", process instanceof SwitchNotes);
+        assertTrue("Result type is wrong", process instanceof SwitchIdeas);
     }
     
     @Test
@@ -62,7 +62,7 @@ public class ELTest {
     }
     
     @Test
-    public void testSwitchWrongNote() {
+    public void testSwitchWrongIdea() {
         ELResult process = EL.process("@s");
         assertTrue("Result type is wrong", process instanceof TaskResult);
         assertEquals("@s", ((TaskResult) process).text);

@@ -61,12 +61,12 @@ public abstract class AbstractConfigTest {
         }
         
         @Override
-        public void showNotes(final java.util.List<Note> list) {
+        public void showIdeas(final java.util.List<Idea> list) {
             // empty
         }
         
         @Override
-        public void showNote(final Note note, final int position) {
+        public void showIdea(final Idea idea, final int position) {
             // empty
         }
         

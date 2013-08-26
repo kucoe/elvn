@@ -48,14 +48,14 @@ public class TaskResult extends BaseResult {
     @Override
     public String execute(final Display display, final Config config) throws Exception {
         String currentList = display.getCurrentList();
-        if (ELCommand.Notes.el().equals(currentList)) {
+        if (ELCommand.Ideas.el().equals(currentList)) {
             String t = text;
             if (t == null) {
                 t = "";
             }
             t = list == null ? t : list + ":" + t;
-            config.saveNote(new Note(new Date().getTime(), t.trim()));
-            return forward(new SwitchNotes(), display, config);
+            config.saveIdea(new Idea(new Date().getTime(), t.trim()));
+            return forward(new SwitchIdeas(), display, config);
         }
         if (ELCommand.ListEdit.el().equals(currentList)) {
             config.saveList(list, text);

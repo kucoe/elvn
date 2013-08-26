@@ -12,7 +12,7 @@ public class List {
     /**
      * Not assigned list constant.
      */
-    public static final String NOT_ASSIGNED = "Not assigned";
+    public static final String NOT_ASSIGNED = "not assigned";
     
     private final String label;
     private final ListColor color;

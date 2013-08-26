@@ -21,27 +21,27 @@ public class ResultTest extends AbstractConfigTest {
     }
     
     @Test
-    public void testTask2Note() throws Exception {
+    public void testTask2Idea() throws Exception {
         TaskCommand command = new TaskCommand(1, "@");
-        assertEquals(ELCommand.Notes.el(), command.execute(display, config));
-        assertEquals(2, config.getNotes().size());
+        assertEquals(ELCommand.Ideas.el(), command.execute(display, config));
+        assertEquals(2, config.getIdeas().size());
     }
     
     @Test
-    public void testNote2TaskCommand() throws Exception {
+    public void testIdea2TaskCommand() throws Exception {
         TaskCommand command = new TaskCommand(1, "g");
-        display.setCurrentList(ELCommand.Notes.el());
+        display.setCurrentList(ELCommand.Ideas.el());
         assertEquals(ListColor.All.toString(), command.execute(display, config));
-        assertEquals(0, config.getNotes().size());
+        assertEquals(0, config.getIdeas().size());
         assertEquals(2, config.getList(ListColor.Green).getTasks().size());
     }
     
     @Test
-    public void testNote2Task() throws Exception {
+    public void testIdea2Task() throws Exception {
         LocateTask command = new LocateTask("g", null, 1);
-        display.setCurrentList(ELCommand.Notes.el());
+        display.setCurrentList(ELCommand.Ideas.el());
         assertEquals(ListColor.Green.toString(), command.execute(display, config));
-        assertEquals(0, config.getNotes().size());
+        assertEquals(0, config.getIdeas().size());
         assertEquals(2, config.getList(ListColor.Green).getTasks().size());
     }
     
@@ -153,11 +153,11 @@ public class ResultTest extends AbstractConfigTest {
     }
     
     @Test
-    public void testGroupDeleteNote() throws Exception {
+    public void testGroupDeleteIdea() throws Exception {
         GroupTaskCommand command = new GroupTaskCommand("x", 1);
-        display.setCurrentList(ELCommand.Notes.el());
-        assertEquals(ELCommand.Notes.el(), command.execute(display, config));
-        assertEquals(0, config.getNotes().size());
+        display.setCurrentList(ELCommand.Ideas.el());
+        assertEquals(ELCommand.Ideas.el(), command.execute(display, config));
+        assertEquals(0, config.getIdeas().size());
     }
     
     @Test
@@ -185,49 +185,49 @@ public class ResultTest extends AbstractConfigTest {
     @Test
     public void testTextTrim() throws Exception {
         ELResult result = EL.process(" aaaa ");
-        display.setCurrentList(ELCommand.Notes.el());
-        assertEquals(ELCommand.Notes.el(), result.execute(display, config));
-        assertEquals("aaaa", config.getNotes().get(1).getText());
+        display.setCurrentList(ELCommand.Ideas.el());
+        assertEquals(ELCommand.Ideas.el(), result.execute(display, config));
+        assertEquals("aaaa", config.getIdeas().get(1).getText());
     }
     
     @Test
     public void testLocateTextTrim() throws Exception {
         ELResult result = EL.process("#1= aaaa ");
-        display.setCurrentList(ELCommand.Notes.el());
-        assertEquals(ELCommand.Notes.el(), result.execute(display, config));
-        assertEquals("aaaa", config.getNotes().get(0).getText());
+        display.setCurrentList(ELCommand.Ideas.el());
+        assertEquals(ELCommand.Ideas.el(), result.execute(display, config));
+        assertEquals("aaaa", config.getIdeas().get(0).getText());
     }
     
     @Test
-    public void testNoteCreate() throws Exception {
+    public void testIdeaCreate() throws Exception {
         ELResult result = EL.process("aaaa");
-        display.setCurrentList(ELCommand.Notes.el());
-        assertEquals(ELCommand.Notes.el(), result.execute(display, config));
-        assertEquals("aaaa", config.getNotes().get(1).getText());
+        display.setCurrentList(ELCommand.Ideas.el());
+        assertEquals(ELCommand.Ideas.el(), result.execute(display, config));
+        assertEquals("aaaa", config.getIdeas().get(1).getText());
     }
     
     @Test
-    public void testNoteWithColon() throws Exception {
+    public void testIdeaWithColon() throws Exception {
         ELResult result = EL.process("kuku:aaaa");
-        display.setCurrentList(ELCommand.Notes.el());
-        assertEquals(ELCommand.Notes.el(), result.execute(display, config));
-        assertEquals("kuku:aaaa", config.getNotes().get(1).getText());
+        display.setCurrentList(ELCommand.Ideas.el());
+        assertEquals(ELCommand.Ideas.el(), result.execute(display, config));
+        assertEquals("kuku:aaaa", config.getIdeas().get(1).getText());
     }
     
     @Test
-    public void testNoteLocateReplace() throws Exception {
-        ELResult result = EL.process("#1=note%task");
-        display.setCurrentList(ELCommand.Notes.el());
-        assertEquals(ELCommand.Notes.el(), result.execute(display, config));
-        assertEquals("Test task", config.getNotes().get(0).getText());
+    public void testIdeaLocateReplace() throws Exception {
+        ELResult result = EL.process("#1=idea%task");
+        display.setCurrentList(ELCommand.Ideas.el());
+        assertEquals(ELCommand.Ideas.el(), result.execute(display, config));
+        assertEquals("Test task", config.getIdeas().get(0).getText());
     }
     
     @Test
-    public void testNoteSearchReplace() throws Exception {
-        ELResult result = EL.process("?note=note%task");
-        display.setCurrentList(ELCommand.Notes.el());
-        assertEquals(ELCommand.Notes.el(), result.execute(display, config));
-        assertEquals("Test task", config.getNotes().get(0).getText());
+    public void testIdeaSearchReplace() throws Exception {
+        ELResult result = EL.process("?idea=idea%task");
+        display.setCurrentList(ELCommand.Ideas.el());
+        assertEquals(ELCommand.Ideas.el(), result.execute(display, config));
+        assertEquals("Test task", config.getIdeas().get(0).getText());
     }
     
     @Test
@@ -249,20 +249,20 @@ public class ResultTest extends AbstractConfigTest {
     }
     
     @Test
-    public void testNoteAppend() throws Exception {
+    public void testIdeaAppend() throws Exception {
         ELResult result = EL.process("#1=+popopo");
-        display.setCurrentList(ELCommand.Notes.el());
-        assertEquals(ELCommand.Notes.el(), result.execute(display, config));
-        String text = config.getNotes().get(0).getText();
-        assertEquals("Test notepopopo", text);
+        display.setCurrentList(ELCommand.Ideas.el());
+        assertEquals(ELCommand.Ideas.el(), result.execute(display, config));
+        String text = config.getIdeas().get(0).getText();
+        assertEquals("Test ideapopopo", text);
     }
     
     @Test
-    public void testNoteSubtract() throws Exception {
-        ELResult result = EL.process("#1=-note");
-        display.setCurrentList(ELCommand.Notes.el());
-        assertEquals(ELCommand.Notes.el(), result.execute(display, config));
-        String text = config.getNotes().get(0).getText();
+    public void testIdeaSubtract() throws Exception {
+        ELResult result = EL.process("#1=-idea");
+        display.setCurrentList(ELCommand.Ideas.el());
+        assertEquals(ELCommand.Ideas.el(), result.execute(display, config));
+        String text = config.getIdeas().get(0).getText();
         assertEquals("Test", text);
     }
     

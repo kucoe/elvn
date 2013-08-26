@@ -1,22 +1,22 @@
 package net.kucoe.elvn;
 
 /**
- * Note bean.
+ * Idea bean.
  * 
  * @author Vitaliy Basyuk
  */
-public class Note implements Comparable<Note> {
+public class Idea implements Comparable<Idea> {
     
     private final Long id;
     private final String text;
     
     /**
-     * Constructs Note.
+     * Constructs Idea.
      * 
      * @param id
      * @param text
      */
-    public Note(final Long id, final String text) {
+    public Idea(final Long id, final String text) {
         this.id = id;
         this.text = text;
     }
@@ -46,8 +46,8 @@ public class Note implements Comparable<Note> {
     
     @Override
     public boolean equals(final Object obj) {
-        if (obj instanceof Note) {
-            return getId().equals(((Note) obj).getId());
+        if (obj instanceof Idea) {
+            return getId().equals(((Idea) obj).getId());
         }
         return false;
     }
@@ -63,7 +63,7 @@ public class Note implements Comparable<Note> {
     }
     
     @Override
-    public int compareTo(final Note o) {
+    public int compareTo(final Idea o) {
         long thisVal = getId();
         long anotherVal = o == null ? -1l : o.getId();
         return (thisVal < anotherVal ? -1 : (thisVal == anotherVal ? 0 : 1));

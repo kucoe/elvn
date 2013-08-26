@@ -236,13 +236,13 @@ public enum ELCommand {
     },
     
     /**
-     * Notes command.
+     * Ideas command.
      */
-    Notes("@") {
+    Ideas("@") {
         @Override
         protected ELCommand doNext() {
             if (processing.isEmpty()) {
-                result = new SwitchNotes();
+                result = new SwitchIdeas();
                 return super.doNext();
             }
             processing = el + processing;

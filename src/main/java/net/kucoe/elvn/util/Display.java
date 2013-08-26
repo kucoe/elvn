@@ -56,19 +56,19 @@ public interface Display {
     void showTasks(java.util.List<Task> tasks);
     
     /**
-     * Displays note list.
+     * Displays idea list.
      * 
      * @param list {@link java.util.List}
      */
-    void showNotes(java.util.List<Note> list);
+    void showIdeas(java.util.List<Idea> list);
     
     /**
-     * Inlines note
+     * Inlines idea
      * 
-     * @param note
+     * @param idea
      * @param position
      */
-    void showNote(Note note, int position);
+    void showIdea(Idea idea, int position);
     
     /**
      * Inlines task

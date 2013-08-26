@@ -82,19 +82,19 @@ public class ConsoleDisplay implements Display {
     }
     
     @Override
-    public void showNotes(final java.util.List<Note> notes) {
-        showHeader("Notes");
+    public void showIdeas(final java.util.List<Idea> ideas) {
+        showHeader("Ideas");
         int i = 1;
-        Collections.sort(notes);
-        for (Note note : notes) {
-            console.write(formatNote(note, i));
+        Collections.sort(ideas);
+        for (Idea idea : ideas) {
+            console.write(formatIdea(idea, i));
             i++;
         }
     }
     
     @Override
-    public void showNote(final Note note, final int position) {
-        showBodyText(ELCommand.Locate.el() + position + ELCommand.Assign.el() + formatNote(note, 0));
+    public void showIdea(final Idea idea, final int position) {
+        showBodyText(ELCommand.Locate.el() + position + ELCommand.Assign.el() + formatIdea(idea, 0));
     }
     
     @Override
@@ -131,14 +131,14 @@ public class ConsoleDisplay implements Display {
         return sb.toString();
     }
     
-    protected String formatNote(final Note note, final int pos) {
+    protected String formatIdea(final Idea idea, final int pos) {
         StringBuilder sb = new StringBuilder();
         if (pos > 0) {
             sb.append('\t');
             sb.append(pos);
             sb.append(".");
         }
-        sb.append(note.getText());
+        sb.append(idea.getText());
         return sb.toString();
     }
     

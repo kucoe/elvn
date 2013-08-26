@@ -50,15 +50,15 @@ public class SearchTask extends TaskResult {
     @Override
     public String execute(final Display display, final Config config) throws Exception {
         String currentList = display.getCurrentList();
-        if (ELCommand.Notes.el().equals(currentList)) {
-            List<Note> notes = config.findNotes(query);
+        if (ELCommand.Ideas.el().equals(currentList)) {
+            List<Idea> ideas = config.findIdeas(query);
             if (text != null) {
-                for (Note note : notes) {
-                    config.saveNote(new Note(note.getId(), processText(note.getText(), text)));
+                for (Idea idea : ideas) {
+                    config.saveIdea(new Idea(idea.getId(), processText(idea.getText(), text)));
                 }
             }
-            notes = config.findNotes(query);
-            display.showNotes(notes);
+            ideas = config.findIdeas(query);
+            display.showIdeas(ideas);
             return currentList;
         }
         List<Task> tasks = config.findTasks(query);

@@ -38,8 +38,8 @@ public class GroupTaskCommand extends TaskCommand {
     public String execute(final Display display, final Config config) throws Exception {
         String currentList = display.getCurrentList();
         Command c = Command.command(command);
-        boolean notes = ELCommand.Notes.el().equals(currentList);
-        if (!notes && c == null) {
+        boolean ideas = ELCommand.Ideas.el().equals(currentList);
+        if (!ideas && c == null) {
             display.showHelp(getHelpMessage(command));
         } else {
             List<TaskCommand> commands = new ArrayList<TaskCommand>();
@@ -48,19 +48,19 @@ public class GroupTaskCommand extends TaskCommand {
             if (Run.alias().equals(cmd)) {
                 cmd = Command.Plan.alias();
             }
-            int[] pos = checkPositions(config, currentList, notes);
+            int[] pos = checkPositions(config, currentList, ideas);
             for (int position : pos) {
-                TaskCommand command = createTaskCommand(config, currentList, notes, cmd, position);
+                TaskCommand command = createTaskCommand(config, currentList, ideas, cmd, position);
                 commands.add(command);
-                if (first == null && !notes) {
+                if (first == null && !ideas) {
                     first = (Task) command.item;
                 }
             }
             for (TaskCommand command : commands) {
                 command.execute(display, config);
             }
-            if (notes) {
-                return forward(new SwitchNotes(), display, config);
+            if (ideas) {
+                return forward(new SwitchIdeas(), display, config);
             }
             if (Run.alias().equals(command)) {
                 config.runTask(first, null);
@@ -70,13 +70,13 @@ public class GroupTaskCommand extends TaskCommand {
         return null;
     }
     
-    protected int[] checkPositions(final Config config, String currentList, boolean notes) throws IOException,
+    protected int[] checkPositions(final Config config, String currentList, boolean ideas) throws IOException,
             JsonException {
         int[] pos = positions;
         if (pos == null) {
             int size = 0;
-            if (notes) {
-                size = config.getNotes().size();
+            if (ideas) {
+                size = config.getIdeas().size();
             } else {
                 net.kucoe.elvn.List list = config.getList(ListColor.color(currentList));
                 if (list != null) {
@@ -91,11 +91,11 @@ public class GroupTaskCommand extends TaskCommand {
         return pos;
     }
     
-    protected TaskCommand createTaskCommand(final Config config, String currentList, boolean notes, String cmd, int i)
+    protected TaskCommand createTaskCommand(final Config config, String currentList, boolean ideas, String cmd, int i)
             throws IOException, JsonException {
         TaskCommand command = new TaskCommand(i, cmd);
-        if (notes) {
-            command.item = command.getNote(config);
+        if (ideas) {
+            command.item = command.getIdea(config);
         } else {
             Task task = command.getTask(currentList, config);
             command.item = task;

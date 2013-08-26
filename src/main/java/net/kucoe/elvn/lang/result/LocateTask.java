@@ -14,9 +14,9 @@ import net.kucoe.elvn.util.*;
 public class LocateTask extends TaskResult {
     
     /**
-     * Explicit note/task item
+     * Explicit idea/task item
      */
-    public Note item;
+    public Idea item;
     
     /**
      * Position.
@@ -46,29 +46,29 @@ public class LocateTask extends TaskResult {
     public String execute(final Display display, final Config config) throws Exception {
         String currentList = display.getCurrentList();
         boolean reshow = true;
-        if (ELCommand.Notes.el().equals(currentList)) {
-            Note note = getNote(config);
-            if (note != null) {
+        if (ELCommand.Ideas.el().equals(currentList)) {
+            Idea idea = getIdea(config);
+            if (idea != null) {
                 if (text == null && list == null) {
                     reshow = false;
-                    display.showNote(note, position);
+                    display.showIdea(idea, position);
                 } else if (text != null) {
                     String t = text;
                     if (t == null) {
                         t = "";
                     }
                     t = list == null ? t : list + ":" + t;
-                    config.saveNote(new Note(note.getId(), processText(note.getText(), t)));
+                    config.saveIdea(new Idea(idea.getId(), processText(idea.getText(), t)));
                 } else if (list != null) {
                     ListColor color = ListColor.color(list);
                     if (color != null) {
-                        config.removeNote(note);
-                        config.saveTask(new Task(note.getId(), list, note.getText(), false, null));
+                        config.removeIdea(idea);
+                        config.saveTask(new Task(idea.getId(), list, idea.getText(), false, null));
                         return forward(new SwitchListColor(color.toString()), display, config);
                     }
                 }
             }
-            return reshow ? forward(new SwitchNotes(), display, config) : currentList;
+            return reshow ? forward(new SwitchIdeas(), display, config) : currentList;
         }
         Task task = getTask(currentList, config);
         if (task != null) {
@@ -82,19 +82,19 @@ public class LocateTask extends TaskResult {
         return reshow ? forward(new SwitchListColor(currentList), display, config) : currentList;
     }
     
-    protected Note getNote(final Config config) throws IOException, JsonException {
+    protected Idea getIdea(final Config config) throws IOException, JsonException {
         if (item != null) {
             return item;
         }
-        java.util.List<Note> notes = config.getNotes();
-        if (notes.size() >= position) {
-            return notes.get(position - 1);
+        java.util.List<Idea> ideas = config.getIdeas();
+        if (ideas.size() >= position) {
+            return ideas.get(position - 1);
         }
         return null;
     }
     
     protected Task getTask(final String currentList, final Config config) throws IOException, JsonException {
-        if (ELCommand.Notes.el().equals(currentList)) {
+        if (ELCommand.Ideas.el().equals(currentList)) {
             return null;
         }
         if (item instanceof Task) {
