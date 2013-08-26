@@ -120,7 +120,7 @@ public class ConsoleDisplay implements Display {
             sb.append(pos);
             sb.append(".");
         }
-        if (task.getCompletedOn() == null && ListColor.All.toString().equals(currentList)) {
+        if (ListColor.isSystemColor(ListColor.color(currentList))) {
             sb.append(task.getList());
             sb.append(":");
         }
