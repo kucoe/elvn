@@ -1,0 +1,35 @@
+{
+    "name": "elvn",
+    "version": "0.1.0",
+    "description": "Command line time management for nerds",
+    "author": "Wolf Bas <becevka@kucoe.net>",
+    "main" : "./lib/elvn",
+    "bin": {
+        "elvn": "./bin/elvn"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/kucoe/elvn.git"
+    },
+    "bugs": "https://github.com/kucoe/elvn/issues",
+    "engines": {
+        "node": "node >= 0.10.x"
+    },
+    "dependencies": {
+        "cline": "*"
+    },
+    "devDependencies": {
+        "mocha": "*",
+        "should": "*"
+    },
+    "scripts": {
+        "test": "node .tests.js"
+    },
+    "keywords": ["cli", "command line interface", "tasks", "to-do", "time management", "timer", "productivity", "nerds"],
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "http://kucoe.mit-license.org/"
+        }
+    ]
+}
