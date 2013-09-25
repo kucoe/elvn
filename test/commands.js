@@ -73,6 +73,12 @@ describe('commands', function () {
         parse.color.should.eql('g', 'color');
         parse.text.should.eql('text', 'text');
     });
+    it('should parse create multi word task', function () {
+        var parse = cli.parse('g:text to test');
+        parse.should.be.instanceof(commands.EditTask, 'task command');
+        parse.color.should.eql('g', 'color');
+        parse.text.should.eql('text to test', 'text');
+    });
     it('should parse create simple task', function () {
         var parse = cli.parse(':text');
         parse.should.be.instanceof(commands.EditTask, 'task command');
@@ -82,28 +88,11 @@ describe('commands', function () {
     it('should parse search task', function () {
         var parse = cli.parse('?alla');
         parse.should.be.instanceof(commands.SearchTask, 'task search command');
-        parse.color.should.eql('', 'color');
-        parse.text.should.eql('', 'text');
         parse.query.should.eql('alla', 'query');
-    });
-    it('should parse search task with replace', function () {
-        var parse = cli.parse('?correct=correct%fixed');
-        parse.should.be.instanceof(commands.SearchTask, 'task search command');
-        parse.color.should.eql('', 'color');
-        parse.text.should.eql('correct%fixed', 'text');
-        parse.query.should.eql('correct', 'query');
-    });
-    it('should parse search task with replace shortcut', function () {
-        var parse = cli.parse('?correct%fixed');
-        parse.should.be.instanceof(commands.SearchTask, 'task search command');
-        parse.color.should.eql('', 'color');
-        parse.text.should.eql('correct%fixed', 'text');
-        parse.query.should.eql('correct', 'query');
     });
     it('should parse locate task', function () {
         var parse = cli.parse('#2');
         parse.should.be.instanceof(commands.LocateTask, 'task locate command');
-        parse.color.should.eql('', 'color');
         parse.text.should .eql('', 'text');
         parse.command.should.eql('', 'command');
         parse.positions.should.eql([2], 'positions');
@@ -111,7 +100,6 @@ describe('commands', function () {
     it('should parse locate task with command', function () {
         var parse = cli.parse('#2-');
         parse.should.be.instanceof(commands.LocateTask, 'task locate command');
-        parse.color.should.eql('', 'color');
         parse.text.should .eql('', 'text');
         parse.command.should.eql('-', 'command');
         parse.positions.should.eql([2], 'positions');
@@ -119,7 +107,6 @@ describe('commands', function () {
     it('should parse locate range task', function () {
         var parse = cli.parse('#2-4');
         parse.should.be.instanceof(commands.LocateTask, 'task locate command');
-        parse.color.should.eql('', 'color');
         parse.text.should .eql('', 'text');
         parse.command.should.eql('', 'command');
         parse.positions.should.eql([2,3,4], 'positions');
@@ -127,7 +114,6 @@ describe('commands', function () {
     it('should parse locate reverse range task', function () {
         var parse = cli.parse('#4-2');
         parse.should.be.instanceof(commands.LocateTask, 'task locate command');
-        parse.color.should.eql('', 'color');
         parse.text.should .eql('', 'text');
         parse.command.should.eql('', 'command');
         parse.positions.should.eql([2,3,4], 'positions');
@@ -135,7 +121,6 @@ describe('commands', function () {
     it('should parse locate big range task', function () {
         var parse = cli.parse('#2-225');
         parse.should.be.instanceof(commands.LocateTask, 'task locate command');
-        parse.color.should.eql('', 'color');
         parse.text.should .eql('', 'text');
         parse.command.should.eql('', 'command');
         var arr = [];
@@ -147,7 +132,6 @@ describe('commands', function () {
     it('should parse locate range task with command', function () {
         var parse = cli.parse('#2-4>');
         parse.should.be.instanceof(commands.LocateTask, 'task locate command');
-        parse.color.should.eql('', 'color');
         parse.text.should .eql('', 'text');
         parse.positions.should.eql([2,3,4], 'positions');
         parse.command.should.eql('>', 'command');
@@ -155,7 +139,6 @@ describe('commands', function () {
     it('should parse locate group task', function () {
         var parse = cli.parse('#2,4');
         parse.should.be.instanceof(commands.LocateTask, 'task locate command');
-        parse.color.should.eql('', 'color');
         parse.text.should .eql('', 'text');
         parse.command.should.eql('', 'command');
         parse.positions.should.eql([2,4], 'positions');
@@ -163,10 +146,33 @@ describe('commands', function () {
     it('should parse locate group task with command', function () {
         var parse = cli.parse('#2,4-');
         parse.should.be.instanceof(commands.LocateTask, 'task locate command');
-        parse.color.should.eql('', 'color');
         parse.text.should .eql('', 'text');
         parse.command.should.eql('-', 'command');
         parse.positions.should.eql([2,4], 'positions');
+    });
+    it('should parse locate range task with replace', function () {
+        var parse = cli.parse('#3-5=correct%fixed');
+        parse.should.be.instanceof(commands.LocateTask, 'task locate command');
+        parse.text.should.eql('correct%fixed', 'text');
+        parse.positions.should.eql([3,4,5], 'positions');
+    });
+    it('should parse locate task with replace', function () {
+        var parse = cli.parse('#1=correct%fixed');
+        parse.should.be.instanceof(commands.LocateTask, 'task locate command');
+        parse.text.should.eql('correct%fixed', 'text');
+        parse.positions.should.eql([1], 'positions');
+    });
+    it('should parse locate range task with edit', function () {
+        var parse = cli.parse('#2-3=lalala');
+        parse.should.be.instanceof(commands.LocateTask, 'task locate command');
+        parse.text.should.eql('lalala', 'text');
+        parse.positions.should.eql([2,3], 'positions');
+    });
+    it('should parse locate group task with edit', function () {
+        var parse = cli.parse('#1,3=lalala');
+        parse.should.be.instanceof(commands.LocateTask, 'task locate command');
+        parse.text.should.eql('lalala', 'text');
+        parse.positions.should.eql([1,3], 'positions');
     });
     it('should parse wrong locate', function () {
         var parse = cli.parse('#s');
