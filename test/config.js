@@ -6,8 +6,7 @@ var d = require('../lib/display');
 var c = require('../lib/config');
 var colors = require('../lib/colors');
 
-var display = new d.Display();
-var config = new c.Config();
+var lastMessage,display, config;
 
 var create = function () {
     config.checkInit();
@@ -26,6 +25,7 @@ describe('config', function () {
         config = new c.Config();
         display.currentList = 'all';
         display.show = function (text) {
+            lastMessage = text;
         };
         config.getBasePath = function () {
             return this.getUserDir() + "/.elvn-test/";
@@ -309,12 +309,20 @@ describe('config', function () {
             done();
         }, 1000);
     });
-    it('should show status', function(){
+    it('should show status', function(done){
         new commands.LocateTask('', [1], ">").run(display, config);
         new commands.SwitchTimer("v").run(display, config);
         setTimeout(function () {
             config.getStatus().indexOf('Done: 1').should.not.eql(-1, 'contains');
             done();
         }, 1000);
+    });
+    it.only('should show help', function(){
+        new commands.SwitchTimer("s").run(display, config);
+        console.log(lastMessage);
+        lastMessage.indexOf('Available commands:').should.not.eql(-1, 'contains help');
+        new commands.LocateTask('', [1,2], "s").run(display, config);
+        console.log(lastMessage);
+        lastMessage.indexOf('Available commands:').should.not.eql(-1, 'contains help');
     })
 });
