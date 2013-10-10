@@ -319,10 +319,15 @@ describe('config', function () {
     });
     it.only('should show help', function(){
         new commands.SwitchTimer("s").run(display, config);
-        console.log(lastMessage);
         lastMessage.indexOf('Available commands:').should.not.eql(-1, 'contains help');
         new commands.LocateTask('', [1,2], "s").run(display, config);
-        console.log(lastMessage);
+        lastMessage.indexOf('Available commands:').should.not.eql(-1, 'contains help');
+        new commands.SwitchSync("s").run(display, config);
+        lastMessage.should.eql('Sync is not initialized', 'no sync message');
+        config.getSync = function() {
+            return {};
+        };
+        new commands.SwitchSync("s").run(display, config);
         lastMessage.indexOf('Available commands:').should.not.eql(-1, 'contains help');
     })
 });
