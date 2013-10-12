@@ -317,7 +317,7 @@ describe('config', function () {
             done();
         }, 1000);
     });
-    it.only('should show help', function(){
+    it('should show help', function(){
         new commands.SwitchTimer("s").run(display, config);
         lastMessage.indexOf('Available commands:').should.not.eql(-1, 'contains help');
         new commands.LocateTask('', [1,2], "s").run(display, config);
@@ -329,5 +329,5 @@ describe('config', function () {
         };
         new commands.SwitchSync("s").run(display, config);
         lastMessage.indexOf('Available commands:').should.not.eql(-1, 'contains help');
-    })
+    });
 });
