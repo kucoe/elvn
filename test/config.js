@@ -12,7 +12,7 @@ var create = function () {
     config.checkInit();
     var editTask = new commands.EditTask('b', 'aaa');
     editTask.getId = function() {
-        return Math.floor(Math.random() * (100000 - 1 + 1)) + 3;
+        return Math.floor(Math.random() * (1000000 - 1 + 1)) + 3;
     };
     for (var i = 0; i < 50; i++) {
         editTask.run(display, config);
