@@ -35,7 +35,7 @@ describe('config', function () {
         config.finish();
         var basePath = config.getBasePath();
         var files = fs.readdirSync(basePath);
-        files.forEach(function (file, index) {
+        files.forEach(function (file) {
             fs.unlinkSync(basePath + "/" + file);
         });
         fs.rmdirSync(basePath);
