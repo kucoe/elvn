@@ -32,7 +32,9 @@ describe.only('sync', function () {
     });
     it('should auth', function () {
         sync.pull();
-        fs.existsSync(config.getBasePath() + "sync.key").should.eql(true, 'key exists');
-        sync.authorized.should.eql(true, 'authorized');
+        setTimeout(function () {
+            fs.existsSync(config.getBasePath() + "sync.key").should.eql(true, 'key exists');
+            sync.authorized.should.eql(true, 'authorized');
+        }, 1000);
     });
 });
