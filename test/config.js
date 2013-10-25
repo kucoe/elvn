@@ -123,7 +123,6 @@ describe('config', function () {
         config.getIdeas()[1].text.should.eql('aaaa:bbbb', 'text');
     });
     it('should replace in idea', function () {
-        var size = config.getIdeas().length;
         display.currentList = '@';
         var command = new commands.LocateTask("idea%task", [1]);
         command.run(display, config).should.eql('@', 'list');
