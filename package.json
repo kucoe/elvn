@@ -1,6 +1,6 @@
 {
     "name": "elvn",
-    "version": "0.1.0",
+    "version": "0.8.rc",
     "description": "Command line time management for nerds",
     "author": "Wolf Bas <becevka@kucoe.net>",
     "main" : "./lib/elvn",

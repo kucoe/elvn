@@ -30,6 +30,13 @@ describe.only('sync', function () {
         });
         fs.rmdirSync(basePath);
     });
+    it('should encrypt and decrypt', function(){
+        var hash = sync.hash('lalala');
+        var time = new Date().getTime();
+        var crypt = sync.encrypt(hash, time);
+        var dec = sync.decrypt(crypt, time);
+        dec.should.eql(hash, 'decrypted');
+    });
     it('should auth', function (done) {
         sync.pull(function () {
             fs.existsSync(config.getBasePath() + "sync.key").should.eql(true, 'key exists');

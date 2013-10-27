@@ -6,7 +6,7 @@ var d = require('../lib/display');
 var c = require('../lib/config');
 var colors = require('../lib/colors');
 
-var lastMessage,display, config;
+var lastMessage, display, config;
 
 var create = function () {
     config.checkInit();
@@ -28,7 +28,7 @@ describe('config', function () {
             lastMessage = text;
         };
         config.getBasePath = function () {
-            return this.getUserDir() + "/.elvn-test/";
+            return this.getUserDir() + "/.e2-test/";
         };
     });
     afterEach(function () {
