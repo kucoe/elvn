@@ -174,6 +174,13 @@ describe('commands', function () {
         parse.text.should.eql('lalala', 'text');
         parse.positions.should.eql([1,3], 'positions');
     });
+    it.only('should parse locate all tasks ', function () {
+        var parse = cli.parse('#*x');
+        parse.should.be.instanceof(commands.LocateTask, 'task locate command');
+        parse.text.should .eql('', 'text');
+        parse.command.should.eql('x', 'command');
+        parse.positions.should.eql([], 'positions');
+    });
     it('should parse wrong locate', function () {
         var parse = cli.parse('#s');
         should.not.exist(parse);

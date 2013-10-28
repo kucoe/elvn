@@ -7,7 +7,7 @@ var s = require('../lib/sync');
 var config, sync, syncNoKey, cli;
 
 
-describe.only('sync', function () {
+describe('sync', function () {
     beforeEach(function () {
         cli = {
             password: function (text, cb) {
@@ -16,7 +16,7 @@ describe.only('sync', function () {
         };
         config = new c.Config();
         config.getBasePath = function () {
-            return this.getUserDir() + "/.elvn-test/";
+            return this.getUserDir() + "/.e2-test/";
         };
         sync = new s.Sync('becevka@mail.ru', false, null, config.getBasePath(), config, cli);
         syncNoKey = new s.Sync('becevka@ya.ru', true, null, config.getBasePath(), config, cli);

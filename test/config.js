@@ -251,6 +251,14 @@ describe('config', function () {
         config.getList('g').tasks.length.should.eql(size + 1, 'list size');
         config.getList('g').tasks[1].text.should.eql('greena:', 'task text');
     });
+    it('should trim task text', function () {
+        display.currentList = 'g';
+        var size = config.getIdeas().length;
+        var command = new commands.EditTask('', " aaaa ");
+        command.run(display, config).should.eql('g', 'list type');
+        config.getList('g').tasks.length.should.eql(size + 1, 'list size');
+        config.getList('g').tasks[1].text.should.eql('aaaa', 'task text');
+    });
     it('should trim text', function () {
         display.currentList = '@';
         var size = config.getIdeas().length;
@@ -265,13 +273,13 @@ describe('config', function () {
         command.run(display, config).should.eql('@', 'list type');
         config.getIdeas()[0].text.should.eql('aaaa', 'task text');
     });
-    it.skip('should search task', function () {
+    it('should search task', function () {
         create();
         var size = config.getList('a').tasks.length;
         size.should.eql(52, 'initial size');
         var command = new commands.SearchTask('aaa');
         colors.all.should.include(command.run(display, config));
-        config.getList('a').tasks.length.should.eql(size - 50, 'list size');
+        config.search.length.should.eql(50, 'search size');
     });
     it('should run timer', function () {
         var command = new commands.LocateTask('', [1], ">");
