@@ -44,18 +44,19 @@ elvn answers
     
     #### Command to save/edit task
       - c(olor):text
-      - text
+      - :text
 
       - \#2=Need to update examples
-    
+      - \#2=+test - appends 'test' to task on the second position
+      - \#2=-test - removes 'test' substring from task on the second position
+
     #### Replace text
       
-      - ?aaa=correct%fixed - that will change 'correct' to 'fixed' in any task found with 'aaa' in text
       - \#3=correct%fixed - will change 'correct' to 'fixed' in third task in a list
 
     #### Move to another list
       
-      - \#2=b:
+      - \#2b
     
 ## Task commands
       
@@ -69,7 +70,7 @@ elvn answers
      
   - \#2-4v - process command over range
   - \#2,3,4v - process command over group
-  - \#*v - process command over all
+  - \#*v - process command over all tasks
     
 ## Idea commands
 
@@ -78,7 +79,7 @@ elvn answers
        
   - \#2-4x - process command over range
   - \#2,3,4x - process command over group
-  - \#*x - process command over all
+  - \#*x - process command over all ideas
 
 ## Timer commands
       
