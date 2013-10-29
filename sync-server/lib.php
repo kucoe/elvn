@@ -67,7 +67,7 @@ function auth($email, $key) {
 function newUser($email, $key) {
 	$id = userId($email);
 	if($id == 0) {
-		$id - newUserId($email);
+		$id = newUserId($email);
 	}
 	mkdir("data/".$id, 0755);
 	writeConfig($email, "");
