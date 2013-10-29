@@ -286,7 +286,7 @@ describe('config', function () {
         command.run(display, config);
         config.getList('t').tasks.length.should.eql(1, 'list size');
         config.getTimer().running.should.eql(true, 'timer running');
-        config.getTimer().lastStage.should.eql('elvn', 'timer stage');
+        config.getTimer().lastStage.should.eql('Elvn', 'timer stage');
     });
     it('should cancel timer', function () {
         new commands.LocateTask('', [1], ">").run(display, config);
@@ -308,11 +308,11 @@ describe('config', function () {
     it('should skip timer', function (done) {
         new commands.LocateTask('', [1], ">").run(display, config);
         config.getTimer().running.should.eql(true, 'timer running');
-        config.getTimer().lastStage.should.eql('elvn', 'timer stage');
+        config.getTimer().lastStage.should.eql('Elvn', 'timer stage');
         new commands.SwitchTimer("^").run(display, config);
         setTimeout(function () {
             config.getTimer().running.should.eql(true, 'timer running');
-            config.getTimer().lastStage.should.eql('work', 'timer stage');
+            config.getTimer().lastStage.should.eql('Work', 'timer stage');
             done();
         }, 1000);
     });
