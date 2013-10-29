@@ -21,6 +21,11 @@ elvn answers
   3. Select task, have a rest first, be elvn for an hour and move to next task
 
 
+## Installation
+
+  `npm install -g elvn`
+
+
 ## Main elvn commands
 
   - /b(lue) - switches to task list by color

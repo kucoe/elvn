@@ -13,7 +13,7 @@
     },
     "bugs": "https://github.com/kucoe/elvn/issues",
     "engines": {
-        "node": ">= 0.11.x"
+        "node": ">= 0.8.x"
     },
     "dependencies": {
         "cline": ">=0.5",
