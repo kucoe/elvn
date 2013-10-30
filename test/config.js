@@ -28,7 +28,7 @@ describe('config', function () {
             lastMessage = text;
         };
         config.getBasePath = function () {
-            return this.getUserDir() + "/.e2-test/";
+            return this.getUserDir() + "/.11-test/";
         };
     });
     afterEach(function () {

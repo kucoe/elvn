@@ -1,6 +1,6 @@
 {
     "name": "elvn",
-    "version": "0.15.0",
+    "version": "0.17.0",
     "description": "Command line time management for nerds",
     "author": "Wolf Bas <becevka@kucoe.net>",
     "main" : "./lib/elvn",
@@ -16,7 +16,7 @@
         "node": ">= 0.8.x"
     },
     "dependencies": {
-        "cline": ">=0.5",
+        "cline": ">=0.7",
         "tire": ">=0.1",
         "growl": "1.7.0"
     },

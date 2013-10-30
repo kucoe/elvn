@@ -4,11 +4,6 @@ var commands = require('../lib/commands');
 
 commands.init(cli);
 
-
-cli.on('command', function (main) {
-    //console.log(main);
-});
-
 describe('commands', function () {
     it('should parse list switch', function () {
         var parse = cli.parse('/all');
