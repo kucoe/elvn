@@ -12,6 +12,9 @@ describe('sync', function () {
         cli = {
             password: function (text, cb) {
                 cb && cb('aaa');
+            },
+            stream: {
+              emit:function(){}
             }
         };
         config = new c.Config();
