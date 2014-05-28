@@ -1,10 +1,10 @@
 var fs = require('fs');
 
-var c = require('../lib/config');
+var i = require('../lib/items');
 var s = require('../lib/sync');
 
 
-var config, sync, syncNoKey, cli;
+var items, sync, syncNoKey, cli;
 
 
 describe('sync', function () {
@@ -17,16 +17,16 @@ describe('sync', function () {
               emit:function(){}
             }
         };
-        config = new c.Config();
-        config.getBasePath = function () {
+        items = new i.Items();
+        items.getBasePath = function () {
             return this.getUserDir() + "/.11-test/";
         };
-        sync = new s.Sync('becevka@mail.ru', false, null, config.getBasePath(), config, cli);
-        syncNoKey = new s.Sync('becevka@ya.ru', true, null, config.getBasePath(), config, cli);
+        sync = new s.Sync('becevka@mail.ru', false, null, items.getBasePath(), items, cli);
+        syncNoKey = new s.Sync('becevka@ya.ru', true, null, items.getBasePath(), items, cli);
     });
     afterEach(function () {
-        config.finish();
-        var basePath = config.getBasePath();
+        items.finish();
+        var basePath = items.getBasePath();
         var files = fs.readdirSync(basePath);
         files.forEach(function (file) {
             fs.unlinkSync(basePath + "/" + file);
@@ -42,7 +42,7 @@ describe('sync', function () {
     });
     it('should auth', function (done) {
         sync.pull(function () {
-            fs.existsSync(config.getBasePath() + "sync.key").should.eql(true, 'key exists');
+            fs.existsSync(items.getBasePath() + "sync.key").should.eql(true, 'key exists');
             sync.authorized.should.eql(true, 'authorized');
             done();
         });
@@ -53,14 +53,14 @@ describe('sync', function () {
         };
         this.timeout(5000);
         sync.pull(function () {
-            fs.existsSync(config.getBasePath() + "sync.key").should.eql(false, 'key not exists');
+            fs.existsSync(items.getBasePath() + "sync.key").should.eql(false, 'key not exists');
             sync.authorized.should.eql(false, 'not authorized');
             done();
         });
     });
     it('should support nokey', function (done) {
         syncNoKey.pull(function () {
-            fs.existsSync(config.getBasePath() + "sync.key").should.eql(false, 'key not exists');
+            fs.existsSync(items.getBasePath() + "sync.key").should.eql(false, 'key not exists');
             syncNoKey.authorized.should.eql(true, 'authorized');
             done();
         });

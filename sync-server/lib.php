@@ -89,15 +89,15 @@ function getRaw() {
 	}
 }
 
-function readConfig($email) {
+function readItems($email) {
 	$id = userId($email);
-	$filename = "data/".$id."/config.json";
+	$filename = "data/".$id."/items.json";
 	return file_get_contents($filename);
 }
 
-function writeConfig($email, $config) {
+function writeItems($email, $items) {
 	$id = userId($email);
-	$filename = "data/".$id."/config.json";
+	$filename = "data/".$id."/items.json";
 	return file_put_contents($filename, $config);
 }
 

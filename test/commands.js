@@ -1,6 +1,7 @@
 var cli = require('cline')();
 var should = require('should');
 var commands = require('../lib/commands');
+var items = require('../lib/items');
 
 commands.init(cli);
 
@@ -8,19 +9,7 @@ describe('commands', function () {
     it('should parse list switch', function () {
         var parse = cli.parse('/all');
         parse.should.be.instanceof(commands.SwitchList, 'list switch command');
-        parse.color.should.eql('all', 'list color ');
-    });
-    it('should parse list editor switch', function () {
-        var parse = cli.parse('&');
-        parse.should.be.instanceof(commands.SwitchListEdit, 'list edit switch command');
-    });
-    it('should parse ideas switch', function () {
-        var parse = cli.parse('@');
-        parse.should.be.instanceof(commands.SwitchIdeas, 'ideas switch command');
-    });
-    it('should parse status switch', function () {
-        var parse = cli.parse('!');
-        parse.should.be.instanceof(commands.SwitchStatus, 'status switch command');
+        parse.plan.should.eql('all', 'list plan ');
     });
     it('should parse sync switch', function () {
         var parse = cli.parse('%');
@@ -46,14 +35,6 @@ describe('commands', function () {
         var parse = cli.parse('&s');
         should.not.exist(parse);
     });
-    it('should parse wrong idea switch', function () {
-        var parse = cli.parse('@s');
-        should.not.exist(parse);
-    });
-    it('should parse wrong status switch', function () {
-        var parse = cli.parse('!s');
-        should.not.exist(parse);
-    });
     it('should parse wrong sync switch', function () {
         var parse = cli.parse('%s');
         should.not.exist(parse);
@@ -65,19 +46,29 @@ describe('commands', function () {
     it('should parse create task', function () {
         var parse = cli.parse('g:text');
         parse.should.be.instanceof(commands.EditTask, 'task command');
-        parse.color.should.eql('g', 'color');
+        parse.plan.should.eql(['g'], 'plan');
         parse.text.should.eql('text', 'text');
+    });
+    it('should parse wrong create task', function () {
+        var parse = cli.parse('text');
+        should.not.exist(parse);
     });
     it('should parse create multi word task', function () {
         var parse = cli.parse('g:text to test');
         parse.should.be.instanceof(commands.EditTask, 'task command');
-        parse.color.should.eql('g', 'color');
+        parse.plan.should.eql(['g'], 'plan');
+        parse.text.should.eql('text to test', 'text');
+    });
+    it('should parse create multi plan task', function () {
+        var parse = cli.parse('g,h:text to test');
+        parse.should.be.instanceof(commands.EditTask, 'task command');
+        parse.plan.should.eql(['g','h'], 'plan');
         parse.text.should.eql('text to test', 'text');
     });
     it('should parse create simple task', function () {
         var parse = cli.parse(':text');
         parse.should.be.instanceof(commands.EditTask, 'task command');
-        parse.color.should.eql('', 'color');
+        parse.plan.should.eql([], 'plan');
         parse.text.should.eql('text', 'text');
     });
     it('should parse search task', function () {
@@ -98,6 +89,30 @@ describe('commands', function () {
         parse.text.should .eql('', 'text');
         parse.command.should.eql('-', 'command');
         parse.positions.should.eql([2], 'positions');
+    });
+    it('should parse locate task with change plan command', function () {
+        var parse = cli.parse('#2:idea,home');
+        parse.should.be.instanceof(commands.LocateTask, 'task locate command');
+        parse.text.should .eql('', 'text');
+        parse.command.should.eql(':', 'command');
+        parse.positions.should.eql([2], 'positions');
+        parse.plan.should.eql(['idea', 'home'], 'command');
+    });
+    it('should parse locate task with append plan command', function () {
+        var parse = cli.parse('#2+idea');
+        parse.should.be.instanceof(commands.LocateTask, 'task locate command');
+        parse.text.should .eql('', 'text');
+        parse.command.should.eql('+', 'command');
+        parse.positions.should.eql([2], 'positions');
+        parse.plan.should.eql(['idea'], 'command');
+    });
+    it('should parse locate task with remove plan command', function () {
+        var parse = cli.parse('#2-idea');
+        parse.should.be.instanceof(commands.LocateTask, 'task locate command');
+        parse.text.should .eql('', 'text');
+        parse.command.should.eql('-', 'command');
+        parse.positions.should.eql([2], 'positions');
+        parse.plan.should.eql(['idea'], 'command');
     });
     it('should parse locate range task', function () {
         var parse = cli.parse('#2-4');
@@ -131,6 +146,30 @@ describe('commands', function () {
         parse.positions.should.eql([2,3,4], 'positions');
         parse.command.should.eql('>', 'command');
     });
+    it('should parse locate range task with change plan command', function () {
+        var parse = cli.parse('#2-4:idea');
+        parse.should.be.instanceof(commands.LocateTask, 'task locate command');
+        parse.text.should .eql('', 'text');
+        parse.positions.should.eql([2,3,4], 'positions');
+        parse.command.should.eql(':', 'command');
+        parse.plan.should.eql(['idea'], 'command');
+    });
+    it('should parse locate range task with append plan command', function () {
+        var parse = cli.parse('#2-4+idea,home');
+        parse.should.be.instanceof(commands.LocateTask, 'task locate command');
+        parse.text.should .eql('', 'text');
+        parse.positions.should.eql([2,3,4], 'positions');
+        parse.command.should.eql('+', 'command');
+        parse.plan.should.eql(['idea', 'home'], 'command');
+    });
+    it('should parse locate range task with remove plan command', function () {
+        var parse = cli.parse('#2-4-idea');
+        parse.should.be.instanceof(commands.LocateTask, 'task locate command');
+        parse.text.should .eql('', 'text');
+        parse.positions.should.eql([2,3,4], 'positions');
+        parse.command.should.eql('-', 'command');
+        parse.plan.should.eql(['idea'], 'command');
+    });
     it('should parse locate group task', function () {
         var parse = cli.parse('#2,4');
         parse.should.be.instanceof(commands.LocateTask, 'task locate command');
@@ -144,6 +183,30 @@ describe('commands', function () {
         parse.text.should .eql('', 'text');
         parse.command.should.eql('-', 'command');
         parse.positions.should.eql([2,4], 'positions');
+    });
+    it('should parse locate group task with change plan command', function () {
+        var parse = cli.parse('#2,4:idea');
+        parse.should.be.instanceof(commands.LocateTask, 'task locate command');
+        parse.text.should .eql('', 'text');
+        parse.command.should.eql(':', 'command');
+        parse.positions.should.eql([2,4], 'positions');
+        parse.plan.should.eql(['idea'], 'command');
+    });
+    it('should parse locate group task with append plan command', function () {
+        var parse = cli.parse('#2,4+idea');
+        parse.should.be.instanceof(commands.LocateTask, 'task locate command');
+        parse.text.should .eql('', 'text');
+        parse.command.should.eql('+', 'command');
+        parse.positions.should.eql([2,4], 'positions');
+        parse.plan.should.eql(['idea'], 'command');
+    });
+    it('should parse locate group task with remove plan command', function () {
+        var parse = cli.parse('#2,4-idea, home');
+        parse.should.be.instanceof(commands.LocateTask, 'task locate command');
+        parse.text.should .eql('', 'text');
+        parse.command.should.eql('-', 'command');
+        parse.positions.should.eql([2,4], 'positions');
+        parse.plan.should.eql(['idea', 'home'], 'command');
     });
     it('should parse locate range task with replace', function () {
         var parse = cli.parse('#3-5=correct%fixed');
@@ -179,5 +242,14 @@ describe('commands', function () {
     it('should parse wrong locate', function () {
         var parse = cli.parse('#s');
         should.not.exist(parse);
+    });
+    it('should have plan', function () {
+        items.is('a', 'a').should.eql(true, 'single-single');
+        items.is(['a'], 'a').should.eql(true, 'array-single');
+        items.is(['a', 'b'], 'a').should.eql(true, 'array-single more');
+        items.is('a', ['a']).should.eql(true, 'single-array');
+        items.is('a', ['a', 'b']).should.eql(true, 'single-array more');
+        items.is(items.all, ['a', 'b']).should.eql(true, 'array-array');
+        items.is(items.all, ['ab', 'b']).should.eql(false, 'not array-array');
     });
 });

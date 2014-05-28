@@ -33,7 +33,7 @@ if($token && $token != '0') {
 	}
 	$key = param('key');
 }
-$config = param('config');
+$items = param('items');
 
 
 

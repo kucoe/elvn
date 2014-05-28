@@ -1,4 +1,4 @@
 RewriteEngine on
 Options +FollowSymlinks
-RewriteCond $1 ^(auth|users|configs)$
+RewriteCond $1 ^(auth|users|items)$
 RewriteRule ^([^/]+)[/]?([^/]+)?[/]?([^/]+)*[/]?$ $1.php?token=$2&email=$3 [NC]

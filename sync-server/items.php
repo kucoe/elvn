@@ -2,10 +2,10 @@
 require_once('params.php');
 
 if($key && auth($email, $key)) {
-	if($config) {
-		resp(writeConfig($email, $config) ? "true" : "false");
+	if($items) {
+		resp(writeItems($email, $items) ? "true" : "false");
 	} else {
-		resp(readConfig($email));
+		resp(readItems($email));
 	}
 } else {
 	resp("fail", "authentication failed");
