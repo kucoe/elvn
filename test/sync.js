@@ -7,7 +7,7 @@ var s = require('../lib/sync');
 var items, sync, syncNoKey, cli;
 
 
-describe('sync', function () {
+describe.only('sync', function () {
     beforeEach(function () {
         cli = {
             password: function (text, cb) {
@@ -41,6 +41,7 @@ describe('sync', function () {
         dec.should.eql(hash, 'decrypted');
     });
     it('should auth', function (done) {
+        this.timeout(5000);
         sync.pull(function () {
             fs.existsSync(items.getBasePath() + "sync.key").should.eql(true, 'key exists');
             sync.authorized.should.eql(true, 'authorized');
@@ -59,6 +60,7 @@ describe('sync', function () {
         });
     });
     it('should support nokey', function (done) {
+        this.timeout(5000);
         syncNoKey.pull(function () {
             fs.existsSync(items.getBasePath() + "sync.key").should.eql(false, 'key not exists');
             syncNoKey.authorized.should.eql(true, 'authorized');
