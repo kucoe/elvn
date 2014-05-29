@@ -1,4 +1,3 @@
-var should = require('should');
 var commands = require('../lib/commands');
 var fs = require('fs');
 
@@ -63,6 +62,13 @@ describe('items', function () {
         var command = new commands.EditTask("work", "a");
         i.all.should.include(command.run(display, items));
         items.getByPlan('all').items.length.should.eql(size + 1, 'list size');
+    });
+    it('should create default plan task', function () {
+        var size = items.getByPlan('work').items.length;
+        var command = new commands.EditTask([], "a");
+        i.all.should.include(command.run(display, items));
+        items.getByPlan('work').items.length.should.eql(size + 1, 'list size');
+        items.getByPlan('work').items[size].text.should.eql('a', 'text');
     });
     it('should create tasks', function () {
         items.checkInit();

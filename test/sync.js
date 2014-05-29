@@ -7,7 +7,7 @@ var s = require('../lib/sync');
 var items, sync, syncNoKey, cli;
 
 
-describe.only('sync', function () {
+describe('sync', function () {
     beforeEach(function () {
         cli = {
             password: function (text, cb) {
