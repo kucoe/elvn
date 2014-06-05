@@ -3,14 +3,6 @@ require_once('lib.php');
 
 $isDelete = $_SERVER['REQUEST_METHOD'] === 'DELETE';
 
-function param($name, $get = false) {
-	$res = $_POST[$name];
-	if(!$res && $get) {
-		$res = $_GET[$name];
-	}
-	return urldecode($res);
-}
-
 $token = param('token', true);
 
 if($token && $token != '0') {
@@ -34,8 +26,5 @@ if($token && $token != '0') {
 	$key = param('key');
 }
 $items = param('items');
-
-
-
 
 ?>

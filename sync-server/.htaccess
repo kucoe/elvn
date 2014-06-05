@@ -1,4 +1,7 @@
 RewriteEngine on
 Options +FollowSymlinks
+
+RewriteRule ^ui[/]?([^/]+)*[/]?([^/]+)*[/]?$ elvn.php?token=$1&plan=$2 [NC]
+
 RewriteCond $1 ^(auth|users|items)$
 RewriteRule ^([^/]+)[/]?([^/]+)?[/]?([^/]+)*[/]?$ $1.php?token=$2&email=$3 [NC]

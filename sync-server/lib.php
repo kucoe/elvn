@@ -70,7 +70,7 @@ function newUser($email, $key) {
 		$id = newUserId($email);
 	}
 	mkdir("data/".$id, 0755);
-	writeConfig($email, "");
+	writeItems($email, "");
 	$filename = "data/".$id."/key";
 	file_put_contents($filename, $key);
 	return $id;
@@ -98,7 +98,7 @@ function readItems($email) {
 function writeItems($email, $items) {
 	$id = userId($email);
 	$filename = "data/".$id."/items.json";
-	return file_put_contents($filename, $config);
+	return file_put_contents($filename, $items);
 }
 
 function nextToken($email, $key) {
@@ -114,14 +114,28 @@ function nextToken($email, $key) {
 	return $randomString;
 }
 
-function readToken($token) {
+function readToken($token, $remove = true) {
 	$filename = "data/tokens/" + $token;
 	if(file_exists($filename)) {
 		$arr = explode("|", file_get_contents($filename));
-		unlink($filename);
+		if($remove) {
+		    unlink($filename);
+		}
 		return $arr;
 	}
 	return null;
+}
+
+function param($name, $get = false) {
+	$res = $_POST[$name];
+	if(!$res && $get) {
+		$res = $_GET[$name];
+	}
+	return urldecode($res);
+}
+
+function hashPass($password) {
+    return hash("sha512", $password);
 }
 
 function resp($value, $error=null) {
