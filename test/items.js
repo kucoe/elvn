@@ -305,7 +305,7 @@ describe('items', function () {
     });
     it('should create journal entry', function () {
         var size = items.getByPlan('@').items.length;
-        var command = new commands.JournalTask("2pm", "a");
+        var command = new commands.JournalTask("2", "a");
         i.journal.should.include(command.run(display, items));
         items.getByPlan('@').items.length.should.eql(size + 1, 'list size');
     });
@@ -313,11 +313,11 @@ describe('items', function () {
         var today = new Date();
         var s = [today.getMonth(), today.getDate(), today.getFullYear()].join('-');
         var size = items.getByPlan('@', s).items.length;
-        var command = new commands.JournalTask("2pm", "a");
+        var command = new commands.JournalTask("2:00", "a");
         i.journal.should.include(command.run(display, items));
         var list = items.getByPlan('@', s);
         list.label.should.equal('Journal for ' + s, 'header');
         list.items.length.should.eql(size + 1, 'list size');
-        i.is(list.items[0].plan, s).should.equal(false, 'not shown date');
+        display.formatItem('@', list.items[0], 0, s).should.equal('2:00 - a', 'not shown date');
     });
 });

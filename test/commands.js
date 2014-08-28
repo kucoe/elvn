@@ -260,15 +260,15 @@ describe('commands', function () {
         items.is(items.all, ['ab', 'b']).should.eql(false, 'not array-array');
     });
     it('should parse journal entry', function () {
-        var parse = cli.parse('@2:30pm-text to test');
+        var parse = cli.parse('@2:30-text to test');
         parse.should.be.instanceof(commands.JournalTask, 'journal command');
-        parse.time.should.eql('2:30pm', 'time');
+        parse.time.should.eql('2:30', 'time');
         parse.entry.should.eql('text to test', 'entry');
     });
     it('should parse journal entry without minutes', function () {
-        var parse = cli.parse('@2pm-text to test');
+        var parse = cli.parse('@2-text to test');
         parse.should.be.instanceof(commands.JournalTask, 'journal command');
-        parse.time.should.eql('2pm', 'time');
+        parse.time.should.eql('2:00', 'time');
         parse.entry.should.eql('text to test', 'entry');
     });
     it('should parse journal entry without time', function () {
@@ -278,14 +278,14 @@ describe('commands', function () {
         parse.entry.should.eql('text to test', 'entry');
     });
     it('should prevent journal entry with incorrect time', function () {
-        var parse = cli.parse('@22pm-text to test');
+        var parse = cli.parse('@25-text to test');
         parse.should.equal(true, 'parsed');
-        lastMessage.should.equal('Wrong time format, expected hh:mm a');
+        lastMessage.should.equal('Wrong time format, expected hh:mm');
     });
     it('should prevent journal entry with incorrect time minutes', function () {
-        var parse = cli.parse('@02:62Pm-text to test');
+        var parse = cli.parse('@02:62-text to test');
         parse.should.equal(true, 'parsed');
-        lastMessage.should.equal('Wrong time format, expected hh:mm a');
+        lastMessage.should.equal('Wrong time format, expected hh:mm');
     });
     it('should parse journal switch', function () {
         var parse = cli.parse('/journal');
