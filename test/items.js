@@ -9,12 +9,14 @@ var lastMessage, display, items;
 var create = function () {
     items.checkInit();
     var editTask = new commands.EditTask('test', 'aaa');
-    editTask.getId = function() {
+    var orig = items.getId;
+    items.getId = function() {
         return Math.floor(Math.random() * (1000000 - 1 + 1)) + 3;
     };
     for (var i = 0; i < 50; i++) {
         editTask.run(display, items);
     }
+    items.getId = orig;
 };
 
 describe('items', function () {
@@ -73,13 +75,15 @@ describe('items', function () {
     it('should create tasks', function () {
         items.checkInit();
         var editTask = new commands.EditTask('work', 'aaa');
-        editTask.getId = function() {
+        var orig = items.getId;
+        items.getId = function() {
             return null;
         };
         var s = new Date().getTime();
         for (var i = 0; i < 2000; i++) {
             editTask.run(display, items);
         }
+        items.getId = orig;
         var e = new Date().getTime();
         console.log(e-s + 'ms');
         items.getByPlan('work').items.length.should.eql(2001, 'list size');
@@ -95,52 +99,52 @@ describe('items', function () {
         items.getByPlan('all').items[0].text.should.eql('Test taskpopopo', 'text');
     });
     it('should create idea', function () {
-        var size = items.getByPlan('@').items.length;
-        display.currentList = '@';
+        var size = items.getByPlan('$').items.length;
+        display.currentList = '$';
         var command = new commands.EditTask("", "aaaa");
-        command.run(display, items).should.eql('@', 'list');
-        items.getByPlan('@').items.length.should.eql(size + 1, 'list size');
-        items.getByPlan('@').items[1].text.should.eql('aaaa', 'text');
+        command.run(display, items).should.eql('$', 'list');
+        items.getByPlan('$').items.length.should.eql(size + 1, 'list size');
+        items.getByPlan('$').items[1].text.should.eql('aaaa', 'text');
     });
     it('should create idea with colon', function () {
-        var size = items.getByPlan('@').items.length;
-        display.currentList = '@';
+        var size = items.getByPlan('$').items.length;
+        display.currentList = '$';
         var command = new commands.EditTask("", "aaaa:bbbb");
-        command.run(display, items).should.eql('@', 'list');
-        items.getByPlan('@').items.length.should.eql(size + 1, 'list size');
-        items.getByPlan('@').items[1].text.should.eql('aaaa:bbbb', 'text');
+        command.run(display, items).should.eql('$', 'list');
+        items.getByPlan('$').items.length.should.eql(size + 1, 'list size');
+        items.getByPlan('$').items[1].text.should.eql('aaaa:bbbb', 'text');
     });
     it('should replace in idea', function () {
-        display.currentList = '@';
+        display.currentList = '$';
         var command = new commands.LocateTask("idea%task", [1]);
-        command.run(display, items).should.eql('@', 'list');
-        items.getByPlan('@').items[0].text.should.eql('Test task', 'text');
+        command.run(display, items).should.eql('$', 'list');
+        items.getByPlan('$').items[0].text.should.eql('Test task', 'text');
     });
     it('should append to idea', function () {
-        display.currentList = '@';
+        display.currentList = '$';
         var command = new commands.LocateTask("+popopo", [1]);
-        command.run(display, items).should.eql('@', 'list');
-        items.getByPlan('@').items[0].text.should.eql('Test ideapopopo', 'text');
+        command.run(display, items).should.eql('$', 'list');
+        items.getByPlan('$').items[0].text.should.eql('Test ideapopopo', 'text');
     });
     it('should subtract from idea', function () {
-        display.currentList = '@';
+        display.currentList = '$';
         var command = new commands.LocateTask("-idea", [1]);
-        command.run(display, items).should.eql('@', 'list');
-        items.getByPlan('@').items[0].text.should.eql('Test', 'text');
+        command.run(display, items).should.eql('$', 'list');
+        items.getByPlan('$').items[0].text.should.eql('Test', 'text');
     });
     it('should convert task to idea', function () {
-        var size = items.getByPlan('@').items.length;
-        var command = new commands.LocateTask('', [1], "+", ['@']);
+        var size = items.getByPlan('$').items.length;
+        var command = new commands.LocateTask('', [1], "+", ['$']);
         command.run(display, items);
-        items.getByPlan('@').items.length.should.eql(size + 1, 'ideas size');
+        items.getByPlan('$').items.length.should.eql(size + 1, 'ideas size');
     });
     it('should convert idea to task', function () {
         var size = items.getByPlan('home').items.length;
-        var isize = items.getByPlan('@').items.length;
-        display.currentList = '@';
+        var isize = items.getByPlan('$').items.length;
+        display.currentList = '$';
         var command = new commands.LocateTask('', [1], ":", 'home');
         command.run(display, items);
-        items.getByPlan('@').items.length.should.eql(isize - 1, 'ideas size');
+        items.getByPlan('$').items.length.should.eql(isize - 1, 'ideas size');
         items.getByPlan('home').items.length.should.eql(size + 1, 'list size');
     });
     it('should run group task', function () {
@@ -230,18 +234,18 @@ describe('items', function () {
         items.getByPlan('g').items[size].text.should.eql('aaaa', 'task text');
     });
     it('should trim text', function () {
-        display.currentList = '@';
-        var size = items.getByPlan('@').items.length;
+        display.currentList = '$';
+        var size = items.getByPlan('$').items.length;
         var command = new commands.EditTask('', " aaaa ");
-        command.run(display, items).should.eql('@', 'list type');
-        items.getByPlan('@').items.length.should.eql(size + 1, 'list size');
-        items.getByPlan('@').items[size].text.should.eql('aaaa', 'task text');
+        command.run(display, items).should.eql('$', 'list type');
+        items.getByPlan('$').items.length.should.eql(size + 1, 'list size');
+        items.getByPlan('$').items[size].text.should.eql('aaaa', 'task text');
     });
     it('should trim text on edit', function () {
-        display.currentList = '@';
+        display.currentList = '$';
         var command = new commands.LocateTask(" aaaa ", [1]);
-        command.run(display, items).should.eql('@', 'list type');
-        items.getByPlan('@').items[0].text.should.eql('aaaa', 'task text');
+        command.run(display, items).should.eql('$', 'list type');
+        items.getByPlan('$').items[0].text.should.eql('aaaa', 'task text');
     });
     it('should search task', function () {
         create();
@@ -298,5 +302,19 @@ describe('items', function () {
         };
         new commands.SwitchSync("s").run(display, items);
         lastMessage.indexOf('Available commands:').should.not.eql(-1, 'contains help');
+    });
+    it('should create journal entry', function () {
+        var size = items.getByPlan('@').items.length;
+        var command = new commands.JournalTask("2pm", "a");
+        i.journal.should.include(command.run(display, items));
+        items.getByPlan('@').items.length.should.eql(size + 1, 'list size');
+    });
+    it('should list journal entries', function () {
+        var today = new Date();
+        var s = [today.getMonth(), today.getDate(), today.getFullYear()].join('-');
+        var size = items.getByPlan('@', s).items.length;
+        var command = new commands.JournalTask("2pm", "a");
+        i.journal.should.include(command.run(display, items));
+        items.getByPlan('@', s).items.length.should.eql(size + 1, 'list size');
     });
 });
