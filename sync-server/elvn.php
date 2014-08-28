@@ -61,8 +61,8 @@ if($del && is_array($items)) {
             array_push($new_arr, $value);
         }
     }
-	writeItems($email, json_encode($new_arr));
 	$items = $new_arr;
+	writeItems($email, json_encode($items));
 }
 
 ?>
@@ -124,7 +124,7 @@ if($del && is_array($items)) {
                     echo '<form method="post" class="form-inline"  role="form"><div class="form-group"><span>';
                     echo $i.". ".json_encode($value->plan).":".$value->text;
                     echo '</span><input type="hidden" name="del" value="'.$value->id.'"/>';
-                    echo '</div><div class="form-group" style="margin-left:20px"><input type="submit" class="btn btn-danger btn-sm" name="submit" value="Remove"/></div></form><br />';
+                    echo '</div><div class="form-group" style="margin-left:20px"><input type="submit" class="btn btn-danger btn-sm" name="submit" value="Remove"/></div></form>';
                     $i++;
                 }
                 echo '
