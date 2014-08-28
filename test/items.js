@@ -315,6 +315,9 @@ describe('items', function () {
         var size = items.getByPlan('@', s).items.length;
         var command = new commands.JournalTask("2pm", "a");
         i.journal.should.include(command.run(display, items));
-        items.getByPlan('@', s).items.length.should.eql(size + 1, 'list size');
+        var list = items.getByPlan('@', s);
+        list.label.should.equal('Journal for ' + s, 'header');
+        list.items.length.should.eql(size + 1, 'list size');
+        i.is(list.items[0].plan, s).should.equal(false, 'not shown date');
     });
 });
