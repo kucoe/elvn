@@ -262,13 +262,13 @@ describe('commands', function () {
     it('should parse journal entry', function () {
         var parse = cli.parse('@2:30-text to test');
         parse.should.be.instanceof(commands.JournalTask, 'journal command');
-        parse.time.should.eql('2:30', 'time');
+        parse.time.should.eql('02:30', 'time');
         parse.entry.should.eql('text to test', 'entry');
     });
     it('should parse journal entry without minutes', function () {
         var parse = cli.parse('@2-text to test');
         parse.should.be.instanceof(commands.JournalTask, 'journal command');
-        parse.time.should.eql('2:00', 'time');
+        parse.time.should.eql('02:00', 'time');
         parse.entry.should.eql('text to test', 'entry');
     });
     it('should parse journal entry without time', function () {
@@ -309,13 +309,22 @@ describe('commands', function () {
         var parse = cli.parse('/@ 12');
         parse.should.be.instanceof(commands.SwitchList, 'journal switch command');
         parse.plan.should.eql('@', 'list journal ');
-        var year = new Date().getFullYear();
-        var m = new Date().getMonth();
-        parse.date.should.eql('12-' + m + '-' + year, 'date journal ');
+        var today = new Date();
+        var year = today.getFullYear();
+        var m = today.getMonth() + 1;
+        if(m < 10) {
+            m = "0" + m;
+        }
+        parse.date.should.eql(['12', m , year].join("-"), 'date journal ');
     });
     it('should prevent journal entry switch incorrect date', function () {
         var parse = cli.parse('/@ 13-12-2099');
         parse.should.equal(true, 'parsed');
-        lastMessage.should.equal('Wrong date format, expected MM-dd-yyyy');
+        lastMessage.should.equal('Wrong date format, expected dd-MM-yyyy');
+    });
+    it('should parse strange plan', function () {
+        var parse = cli.parse('/2');
+        parse.should.be.instanceof(commands.SwitchList, 'list switch command');
+        parse.plan.should.equal('2', 'list plan ');
     });
 });

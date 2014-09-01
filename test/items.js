@@ -311,7 +311,11 @@ describe('items', function () {
     });
     it('should list journal entries', function () {
         var today = new Date();
-        var s = [today.getMonth(), today.getDate(), today.getFullYear()].join('-');
+        var m = today.getMonth() + 1;
+        if(m < 10) {
+            m = "0" + m;
+        }
+        var s = [today.getDate(), m, today.getFullYear()].join('-');
         var size = items.getByPlan('@', s).items.length;
         var command = new commands.JournalTask("2:00", "a");
         i.journal.should.include(command.run(display, items));
@@ -319,5 +323,14 @@ describe('items', function () {
         list.label.should.equal('Journal for ' + s, 'header');
         list.items.length.should.eql(size + 1, 'list size');
         display.formatItem('@', list.items[0], 0, s).should.equal('2:00 - a', 'not shown date');
+    });
+    it.only('should append to task and respect existing plans', function () {
+        var command = new commands.LocateTask("", [1], '+', ['other']);
+        i.all.should.include(command.run(display, items));
+        items.getByPlan('all').items[0].plan.should.eql(['work', 'other']);
+        command = new commands.LocateTask("+popopo", [1]);
+        i.all.should.include(command.run(display, items));
+        items.getByPlan('all').items[0].text.should.eql('Test taskpopopo', 'text');
+        items.getByPlan('all').items[0].plan.should.eql(['work', 'other']);
     });
 });
