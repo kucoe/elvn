@@ -40,7 +40,7 @@ elvn answers
   - ? - searches tasks/idea by text
   - \# - gets task/idea by position in list
 
-  examples : 
+  Examples : 
     - ?correct - returns all tasks/ideas in list that contain 'correct' in text
     - \#2 - returns task that has the second position in list
 
