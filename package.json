@@ -18,7 +18,7 @@
     "dependencies": {
         "cline": ">=0.7",
         "tire": ">=0.1",
-        "growl": "1.7.0"
+        "growl": ">=1.10.0"
     },
     "devDependencies": {
         "mocha": "*",
